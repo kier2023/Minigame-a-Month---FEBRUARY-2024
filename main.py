@@ -85,7 +85,7 @@ class Alien:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.vel = 3 #Might need to make same speed as player?
+        self.vel = 3
         self.images_forward = [ALIEN_WALKING_FORWARD_1, ALIEN_STILL_FORWARD, ALIEN_WALKING_FORWARD_2]
         self.images_up = [ALIEN_WALKING_UP_1, ALIEN_STILL_UP, ALIEN_WALKING_UP_2]
         self.images_left = [ALIEN_WALKING_LEFT_1, ALIEN_STILL_LEFT, ALIEN_WALKING_LEFT_2]
@@ -110,17 +110,33 @@ class Alien:
             self.direction_timer = random.randint(30, 90)
 
         else:
+            new_x = self.x
+            new_y = self.y
+
             if self.current_images is self.images_forward:
-                self.y += self.vel
+                new_y += self.vel
             
             elif self.current_images is self.images_up:
-                self.y -= self.vel
+                new_y -= self.vel
             
             elif self.current_images is self.images_left:
-                self.x -= self.vel
+                new_x -= self.vel
             
             elif self.current_images is self.images_right:
-                self.x += self.vel
+                new_x += self.vel
+            
+            if 0 <= new_x <= WIDTH - self.current_images[0].get_width() and 0 <= new_y <= HEIGHT - self.current_images[0].get_height():
+                self.x = new_x
+                self.y = new_y
+            else:
+                if self.current_images is self.images_forward:
+                    self.current_images = self.images_up
+                elif self.current_images is self.images_up:
+                    self.current_images = self.images_forward
+                elif self.current_images is self.images_left:
+                    self.current_images = self.images_right
+                elif self.current_images is self.images_right:
+                    self.current_images = self.images_left
             
             self.direction_timer -= 1
             
@@ -134,7 +150,7 @@ class Player:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.vel = 5
+        self.vel = 3
         self.images_forward = [PLAYER_WALKING_FORWARD_1, PLAYER_STILL_FORWARD, PLAYER_WALKING_FORWARD_2]
         self.images_up = [PLAYER_WALKING_UP_1, PLAYER_STILL_UP, PLAYER_WALKING_UP_2]
         self.images_left = [PLAYER_WALKING_LEFT_1, PLAYER_STILL_LEFT, PLAYER_WALKING_LEFT_2]
@@ -160,6 +176,16 @@ class Player:
             y_movement += self.vel
             self.current_images = self.images_forward
         
+        else:
+            if self.current_images == self.images_left:
+                self.current_images = [PLAYER_STILL_LEFT]
+            elif self.current_images == self.images_right:
+                self.current_images = [PLAYER_STILL_RIGHT]
+            elif self.current_images == self.images_up:
+                self.current_images = [PLAYER_STILL_UP]
+            elif self.current_images == self.images_forward:
+                self.current_images = [PLAYER_STILL_FORWARD]
+
         self.x += x_movement
         self.y += y_movement
     
