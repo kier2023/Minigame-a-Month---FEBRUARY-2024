@@ -81,6 +81,10 @@ PLAYER_WALKING_LEFT_2 = pygame.image.load('Assets/Astronaut/Player_walkingLeft_2
 PLAYER_WALKING_RIGHT_1 = pygame.image.load('Assets/Astronaut/Player_walkingRight_1.png')
 PLAYER_WALKING_RIGHT_2 = pygame.image.load('Assets/Astronaut/Player_walkingRight_2.png')
 
+#Player/Enemy lasers:
+PLAYER_LASER = pygame.image.load('Assets/lasers/green laser.png') # TEMPORARY BULLETS FOR TESTING
+ENEMY_LASER = pygame.image.load('Assets/lasers/red laser.png') # TEMPORARY BULLETS FOR TESTING
+
 class Alien:
     def __init__(self, x, y):
         self.x = x
@@ -146,6 +150,22 @@ class Alien:
         index = self.walk_count // 3
         WIN.blit(self.current_images[index], (self.x, self.y))
 
+class Laser:
+    def __init__(self, x, y, image):
+        self.x = x
+        self.y = y
+        self.vel = 5
+        self.image = image
+    
+    def draw(self):
+        WIN.blit(self.image, (self.x, self.y))
+    
+    def move(self):
+        self.y -= self.vel
+    
+    def is_off_Screen(self):
+        return self.y <0
+
 class Player:
     def __init__(self, x, y):
         self.x = x
@@ -157,6 +177,11 @@ class Player:
         self.images_right = [PLAYER_WALKING_RIGHT_1, PLAYER_STILL_RIGHT, PLAYER_WALKING_RIGHT_2]
         self.current_images = self.images_forward
         self.walk_count = 0
+        self.lasers = []
+    
+    def shoot(self):
+        laser = Laser(self.x +self.current_images[0].get_width() // 2 - PLAYER_LASER.get_width() // 2, self.y, PLAYER_LASER)
+        self.lasers.append(laser)
     
     def move(self, keys):
         x_movement = 0
@@ -190,6 +215,10 @@ class Player:
         self.y += y_movement
     
         self.walk_count = (self.walk_count + 1) % (len(self.current_images) * 3)
+
+        mouse_buttons = pygame.mouse.get_pressed()
+        if mouse_buttons[0]:
+            self.shoot()
     
     def draw(self, win):
         index = self.walk_count // 3
@@ -199,7 +228,7 @@ class Player:
 pygame.font.init()
 
 async def main():
-    run = True
+    run = False
     FPS = 60
     LEVEL, LIVES = 0, 5
     MAIN_FONT = pygame.font.Font('Fonts/SPACE.ttf', 30)
@@ -225,6 +254,8 @@ async def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                run = True
         
         await asyncio.sleep(0)
     
@@ -243,7 +274,15 @@ async def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 RUN = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                PLAYER.shoot()
+
+        for laser in PLAYER.lasers:
+            laser.draw()
+            laser.move()
         
+        PLAYER.lasers = [laser for laser in PLAYER.lasers if not laser.is_off_Screen]
+
         for enemy in ENEMIES:
             enemy.move()
             enemy.draw()
