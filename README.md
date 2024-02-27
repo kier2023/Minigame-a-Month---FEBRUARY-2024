@@ -1,6 +1,6 @@
 # Lost in Space
 
-Lost in Space is a simple space-themed game implemented in Python using the Pygame library.
+Lost in Space is a simple space-themed game implemented in Python using the Pygame library. This is part of the [Minigame a Month - February 2024](https://itch.io/jam/minigame-a-month-february-2024) Game jam.
 
 ## Table of Contents
 
