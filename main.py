@@ -1,118 +1,231 @@
-###################################################################################
-# THIS GAME IS NOT READY YET, YOU CAN STILL PLAY IT, BUT I AM NO WHERE NEAR READY #
-###################################################################################
-###################################################################################
-
-import pygame
-import sys
-import random
+import pygame, sys
 import asyncio
+import random
 
 WIDTH, HEIGHT = 800, 800
-FPS = 60
-PLAYER_VEL = 5
-COOLDOWN = 30
-
-pygame.init()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Lost in Space")
 
-BACKGROUND = pygame.image.load('Images/background.png')
-PLAYER_IMAGE = pygame.image.load('Images/pixel_ship_yellow.png')
-ASTEROID_IMAGES = [pygame.image.load(f'Images/asteroid {i}.png') for i in range(1, 4)]
-OXYGEN_IMAGES = [pygame.image.load(f'Images/o2 {i}.png') for i in range(1, 4)]
+#images!!! 
+
+#backgrounds:
+MENU = pygame.image.load('Assets/backgrounds/bg.png')
+BACKGROUND1 = pygame.image.load('Assets/backgrounds/Background 1.png')
+BACKGROUND2 = pygame.image.load('Assets/backgrounds/Background 2.png')
+BACKGROUND3 = pygame.image.load('Assets/backgrounds/Background 3.png')
+
+#Enemy Alien - Forgot to edit to transparent when editing the sprite frames, so I did it in python, which is why this part looks messy lol:
+ALIEN_STILL_FORWARD = pygame.image.load('Assets/Enemies/Alien-stillForward.png')
+ALIEN_STILL_FORWARD = ALIEN_STILL_FORWARD.convert_alpha()
+ALIEN_STILL_FORWARD.set_colorkey((0, 0, 0))
+
+ALIEN_STILL_UP = pygame.image.load('Assets/Enemies/Alien-stillUp.png')
+ALIEN_STILL_UP = ALIEN_STILL_UP.convert_alpha()
+ALIEN_STILL_UP.set_colorkey((0, 0, 0))
+
+ALIEN_STILL_LEFT = pygame.image.load('Assets/Enemies/Alien-stillLeft.png')
+ALIEN_STILL_LEFT = ALIEN_STILL_LEFT.convert_alpha()
+ALIEN_STILL_LEFT.set_colorkey((0, 0, 0))
+
+ALIEN_STILL_RIGHT = pygame.image.load('Assets/Enemies/Alien-stillRight.png')
+ALIEN_STILL_RIGHT = ALIEN_STILL_RIGHT.convert_alpha()
+ALIEN_STILL_RIGHT.set_colorkey((0, 0, 0))
+
+ALIEN_WALKING_FORWARD_1 = pygame.image.load('Assets/Enemies/Alien-walkingForward1.png')
+ALIEN_WALKING_FORWARD_1 = ALIEN_WALKING_FORWARD_1.convert_alpha()
+ALIEN_WALKING_FORWARD_1.set_colorkey((0, 0, 0))
+
+ALIEN_WALKING_FORWARD_2 = pygame.image.load('Assets/Enemies/Alien-walkingForward2.png')
+ALIEN_WALKING_FORWARD_2 = ALIEN_WALKING_FORWARD_2.convert_alpha()
+ALIEN_WALKING_FORWARD_2.set_colorkey((0, 0, 0))
+
+ALIEN_WALKING_UP_1 = pygame.image.load('Assets/Enemies/Alien-walkingUp1.png')
+ALIEN_WALKING_UP_1 = ALIEN_WALKING_UP_1.convert_alpha()
+ALIEN_WALKING_UP_1.set_colorkey((0, 0, 0))
+
+ALIEN_WALKING_UP_2 = pygame.image.load('Assets/Enemies/Alien-walkingUp2.png')
+ALIEN_WALKING_UP_2 = ALIEN_WALKING_UP_2.convert_alpha()
+ALIEN_WALKING_UP_2.set_colorkey((0, 0, 0))
+
+ALIEN_WALKING_LEFT_1 = pygame.image.load('Assets/Enemies/Alien-walkingLeft1.png')
+ALIEN_WALKING_LEFT_1 = ALIEN_WALKING_LEFT_1.convert_alpha()
+ALIEN_WALKING_LEFT_1.set_colorkey((0, 0, 0))
+
+ALIEN_WALKING_LEFT_2 = pygame.image.load('Assets/Enemies/Alien-walkingLeft2.png')
+ALIEN_WALKING_LEFT_2 = ALIEN_WALKING_LEFT_2.convert_alpha()
+ALIEN_WALKING_LEFT_2.set_colorkey((0, 0, 0))
+
+ALIEN_WALKING_RIGHT_1 = pygame.image.load('Assets/Enemies/Alien-walkingRight1.png')
+ALIEN_WALKING_RIGHT_1 = ALIEN_WALKING_RIGHT_1.convert_alpha()
+ALIEN_WALKING_RIGHT_1.set_colorkey((0, 0, 0))
+
+ALIEN_WALKING_RIGHT_2 = pygame.image.load('Assets/Enemies/Alien-walkingRight2.png')
+ALIEN_WALKING_RIGHT_2 = ALIEN_WALKING_RIGHT_2.convert_alpha()
+ALIEN_WALKING_RIGHT_2.set_colorkey((0, 0, 0))
+
+# Player - This time I made the background transparent lol.... I HATE MY LIFE.
+PLAYER_STILL_FORWARD = pygame.image.load('Assets/Astronaut/Player_stillForward.png')
+PLAYER_STILL_LEFT = pygame.image.load('Assets/Astronaut/Player_stillLeft.png')
+PLAYER_STILL_RIGHT = pygame.image.load('Assets/Astronaut/Player_stillRight.png')
+PLAYER_STILL_UP = pygame.image.load('Assets/Astronaut/Player_stillUp.png')
+
+PLAYER_WALKING_FORWARD_1 = pygame.image.load('Assets/Astronaut/Player_walkingForward_1.png')
+PLAYER_WALKING_FORWARD_2 = pygame.image.load('Assets/Astronaut/Player_walkingForward_2.png')
+
+PLAYER_WALKING_UP_1 = pygame.image.load('Assets/Astronaut/Player_walkingUp_1.png')
+PLAYER_WALKING_UP_2 = pygame.image.load('Assets/Astronaut/Player_walkingUp_2.png')
+
+PLAYER_WALKING_LEFT_1 = pygame.image.load('Assets/Astronaut/Player_walkingLeft_1.png')
+PLAYER_WALKING_LEFT_2 = pygame.image.load('Assets/Astronaut/Player_walkingLeft_2.png')
+
+PLAYER_WALKING_RIGHT_1 = pygame.image.load('Assets/Astronaut/Player_walkingRight_1.png')
+PLAYER_WALKING_RIGHT_2 = pygame.image.load('Assets/Astronaut/Player_walkingRight_2.png')
+
+class Alien:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.vel = 3 #Might need to make same speed as player?
+        self.images_forward = [ALIEN_WALKING_FORWARD_1, ALIEN_STILL_FORWARD, ALIEN_WALKING_FORWARD_2]
+        self.images_up = [ALIEN_WALKING_UP_1, ALIEN_STILL_UP, ALIEN_WALKING_UP_2]
+        self.images_left = [ALIEN_WALKING_LEFT_1, ALIEN_STILL_LEFT, ALIEN_WALKING_LEFT_2]
+        self.images_right = [ALIEN_WALKING_RIGHT_1, ALIEN_STILL_RIGHT, ALIEN_WALKING_RIGHT_2]
+        self.current_images = self.images_forward
+        self.walk_count = 0
+        self.direction_timer = random.randint(30, 90)
+    
+    def move(self):
+        if self.direction_timer == 0:
+            direction = random.randint(0, 3)
+
+            if direction == 0:
+                self.current_images = self.images_forward
+            elif direction == 1:
+                self.current_images = self.images_up
+            elif direction == 2:
+                self.current_images = self.images_left
+            elif direction == 3:
+                self.current_images = self.images_right
+            
+            self.direction_timer = random.randint(30, 90)
+
+        else:
+            if self.current_images is self.images_forward:
+                self.y += self.vel
+            
+            elif self.current_images is self.images_up:
+                self.y -= self.vel
+            
+            elif self.current_images is self.images_left:
+                self.x -= self.vel
+            
+            elif self.current_images is self.images_right:
+                self.x += self.vel
+            
+            self.direction_timer -= 1
+            
+        self.walk_count = (self.walk_count + 1) % (len(self.current_images) * 3)
+
+    def draw(self):
+        index = self.walk_count // 3
+        WIN.blit(self.current_images[index], (self.x, self.y))
 
 class Player:
-    def __init__(self, x, y, o2=100):
-        self.image = PLAYER_IMAGE
-        self.rect = self.image.get_rect(topleft=(x, y))
-        self.o2 = o2
-
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.vel = 5
+        self.images_forward = [PLAYER_WALKING_FORWARD_1, PLAYER_STILL_FORWARD, PLAYER_WALKING_FORWARD_2]
+        self.images_up = [PLAYER_WALKING_UP_1, PLAYER_STILL_UP, PLAYER_WALKING_UP_2]
+        self.images_left = [PLAYER_WALKING_LEFT_1, PLAYER_STILL_LEFT, PLAYER_WALKING_LEFT_2]
+        self.images_right = [PLAYER_WALKING_RIGHT_1, PLAYER_STILL_RIGHT, PLAYER_WALKING_RIGHT_2]
+        self.current_images = self.images_forward
+        self.walk_count = 0
+    
     def move(self, keys):
-        self.rect.x += (keys[pygame.K_d] - keys[pygame.K_a]) * PLAYER_VEL
-        self.rect.y += (keys[pygame.K_s] - keys[pygame.K_w]) * PLAYER_VEL
-        self.rect.x = max(0, min(self.rect.x, WIDTH - self.rect.width))
-        self.rect.y = max(0, min(self.rect.y, HEIGHT - self.rect.height))
+        x_movement = 0
+        y_movement = 0
 
-    def draw(self, surface):
-        surface.blit(self.image, self.rect.topleft)
+        if keys[pygame.K_a] and self.x > self.vel:
+            x_movement -= self.vel
+            self.current_images = self.images_left
+        elif keys[pygame.K_d] and self.x < WIDTH - self.vel - self.current_images[0].get_width():
+            x_movement += self.vel
+            self.current_images = self.images_right
 
-class Asteroid(pygame.sprite.Sprite):
-    def __init__(self, x, y, image):
-        super().__init__()
-        self.image = image
-        self.rect = self.image.get_rect(topleft=(x, y))
-        self.vel = random.randint(1, 7)
+        if keys[pygame.K_w] and self.y > self.vel:
+            y_movement -= self.vel
+            self.current_images = self.images_up
+        elif keys[pygame.K_s] and self.y < HEIGHT - self.vel - self.current_images[0].get_height():
+            y_movement += self.vel
+            self.current_images = self.images_forward
+        
+        self.x += x_movement
+        self.y += y_movement
+    
+        self.walk_count = (self.walk_count + 1) % (len(self.current_images) * 3)
+    
+    def draw(self, win):
+        index = self.walk_count // 3
+        win.blit(self.current_images[index], (self.x, self.y))
 
-    def move(self):
-        self.rect.y += self.vel
-
-    def draw(self, surface):
-        surface.blit(self.image, self.rect.topleft)
-
-class AsteroidManager:
-    def __init__(self):
-        self.asteroid_list = pygame.sprite.Group()
-        self.spawn_cooldown = 0
-
-    def spawn_asteroid(self):
-        x = random.randint(0, WIDTH - 50)
-        y = random.randint(-50, -10)
-        asteroid_image = random.choice(ASTEROID_IMAGES)
-        asteroid = Asteroid(x, y, asteroid_image)
-        self.asteroid_list.add(asteroid)
-
-    def move_asteroids(self):
-        for asteroid in self.asteroid_list:
-            asteroid.move()
-
-    def draw_asteroids(self, surface):
-        self.asteroid_list.draw(surface)
-
-    def update(self, player):
-        self.spawn_cooldown -= 1
-        if self.spawn_cooldown <= 0:
-            self.spawn_asteroid()
-            self.spawn_cooldown = COOLDOWN
-
-        self.move_asteroids()
-        self.draw_asteroids(WIN)
-
-        if pygame.sprite.spritecollide(player, self.asteroid_list, False):
-            return True 
-        return False
+#Game loop:
+pygame.font.init()
 
 async def main():
-    RUN = True
-    LEVEL, LIVES = 0, 3
-
-    player = Player(350, 650)
-
+    run = True
+    FPS = 60
+    LEVEL, LIVES = 0, 5
+    MAIN_FONT = pygame.font.Font('Fonts/SPACE.ttf', 30)
+    ENEMIES = []
+    WAVE_LEN = 8
+    LOST = False
+    PLAYER = Player(WIDTH // 2, HEIGHT // 2)
     CLOCK = pygame.time.Clock()
-    asteroid_manager = AsteroidManager()
 
-    while RUN:
+    while not run:
         CLOCK.tick(FPS)
+        menu_scaled = pygame.transform.scale(MENU, (WIDTH, HEIGHT))
+        WIN.blit(menu_scaled, (0, 0))
+
+
+        #Click to start message:
+        start_message = MAIN_FONT.render('Click to Start!', True, (255, 255, 255))
+        WIN.blit(start_message, (WIDTH // 2 - start_message.get_width() // 2, HEIGHT // 2 - start_message.get_height() // 2))
+
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        
+        await asyncio.sleep(0)
+    
+    for _ in range(WAVE_LEN):
+        alien = Alien(random.randint(0, WIDTH - ALIEN_STILL_FORWARD.get_width()), random.randint(0, HEIGHT - ALIEN_STILL_FORWARD.get_height()))
+        ENEMIES.append(alien)
+
+    while run:
+        CLOCK.tick(FPS)
+        WIN.blit(BACKGROUND1, (0, 0))
+
+        keys = pygame.key.get_pressed()
+        PLAYER.move(keys)
+        PLAYER.draw(WIN)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 RUN = False
+        
+        for enemy in ENEMIES:
+            enemy.move()
+            enemy.draw()
 
-        keys = pygame.key.get_pressed()
-        player.move(keys)
-
-        WIN.fill((0, 0, 0))
-        WIN.blit(BACKGROUND, (0, 0))
-        player.draw(WIN)
-
-        if asteroid_manager.update(player):
-            print("Game Over - Player collided with an asteroid")
-            RUN = False
-
-        pygame.display.flip()
-
+        pygame.display.update()
+        await asyncio.sleep(0)
+    
     pygame.quit()
-    sys.exit()
 
 if __name__ == "__main__":
     asyncio.run(main())
