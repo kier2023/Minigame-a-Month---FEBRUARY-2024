@@ -1,10 +1,12 @@
 import pygame, sys
 import asyncio
 import random
+import math
 
 WIDTH, HEIGHT = 800, 800
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Lost in Space")
+Lasers = []
 
 #images!!! 
 
@@ -82,8 +84,8 @@ PLAYER_WALKING_RIGHT_1 = pygame.image.load('Assets/Astronaut/Player_walkingRight
 PLAYER_WALKING_RIGHT_2 = pygame.image.load('Assets/Astronaut/Player_walkingRight_2.png')
 
 #Player/Enemy lasers:
-PLAYER_LASER = pygame.image.load('Assets/lasers/green laser.png') # TEMPORARY BULLETS FOR TESTING
-ENEMY_LASER = pygame.image.load('Assets/lasers/red laser.png') # TEMPORARY BULLETS FOR TESTING
+PLAYER_LASER = pygame.image.load('Assets/lasers/2.png') # TEMPORARY BULLETS FOR TESTING
+ENEMY_LASER = pygame.image.load('Assets/lasers/1.png') # TEMPORARY BULLETS FOR TESTING
 
 class Alien:
     def __init__(self, x, y):
@@ -98,7 +100,7 @@ class Alien:
         self.walk_count = 0
         self.direction_timer = random.randint(30, 90)
     
-    def move(self):
+    def move(self, player_x, player_y):
         if self.direction_timer == 0:
             direction = random.randint(0, 3)
 
@@ -151,20 +153,26 @@ class Alien:
         WIN.blit(self.current_images[index], (self.x, self.y))
 
 class Laser:
-    def __init__(self, x, y, image):
+    def __init__(self, x, y, direction):
         self.x = x
         self.y = y
         self.vel = 5
-        self.image = image
+        self.direction = direction
+        self.image = PLAYER_LASER
+        self.image = pygame.transform.scale(self.image, (15, 15)) # I think this might be a little on the smaller side.
+
+    def move(self):
+        if self.direction == "UP":
+            self.y -= self.vel
+        elif self.direction == "DOWN":
+            self.y += self.vel
+        elif self.direction == "LEFT":
+            self.x -= self.vel
+        elif self.direction == "RIGHT":
+            self.x += self.vel
     
     def draw(self):
         WIN.blit(self.image, (self.x, self.y))
-    
-    def move(self):
-        self.y -= self.vel
-    
-    def is_off_Screen(self):
-        return self.y <0
 
 class Player:
     def __init__(self, x, y):
@@ -177,12 +185,11 @@ class Player:
         self.images_right = [PLAYER_WALKING_RIGHT_1, PLAYER_STILL_RIGHT, PLAYER_WALKING_RIGHT_2]
         self.current_images = self.images_forward
         self.walk_count = 0
-        self.lasers = []
-    
-    def shoot(self):
-        laser = Laser(self.x +self.current_images[0].get_width() // 2 - PLAYER_LASER.get_width() // 2, self.y, PLAYER_LASER)
-        self.lasers.append(laser)
-    
+
+    def shoot(self, direction):
+        laser = Laser(self.x + self.current_images[0].get_width() // 2, self.y + self.current_images[0].get_height() // 2, direction)
+        return laser
+
     def move(self, keys):
         x_movement = 0
         y_movement = 0
@@ -218,8 +225,25 @@ class Player:
 
         mouse_buttons = pygame.mouse.get_pressed()
         if mouse_buttons[0]:
-            self.shoot()
+            direction = self.get_shooting_direction()
+            laser = self.shoot(direction)
+            Lasers.append(laser)
     
+    def get_shooting_direction(self):
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        angle = math.atan2(mouse_y - (self.y + self.current_images[0].get_height() // 2),
+                           mouse_x - (self.x + self.current_images[0].get_width() // 2))
+        angle = math.degrees(angle)
+
+        if -45 <= angle <= 45:
+            return "RIGHT"
+        elif 45 < angle <= 135:
+            return "DOWN"
+        elif -135 <= angle < -45:
+            return "UP"
+        else:
+            return "LEFT"
+
     def draw(self, win):
         index = self.walk_count // 3
         win.blit(self.current_images[index], (self.x, self.y))
@@ -263,9 +287,12 @@ async def main():
         alien = Alien(random.randint(0, WIDTH - ALIEN_STILL_FORWARD.get_width()), random.randint(0, HEIGHT - ALIEN_STILL_FORWARD.get_height()))
         ENEMIES.append(alien)
 
+    Lasers = []
+
     while run:
         CLOCK.tick(FPS)
-        WIN.blit(BACKGROUND1, (0, 0))
+        scaled_background = pygame.transform.scale(BACKGROUND1, (WIDTH, HEIGHT))
+        WIN.blit(scaled_background, (0, 0))
 
         keys = pygame.key.get_pressed()
         PLAYER.move(keys)
@@ -275,13 +302,13 @@ async def main():
             if event.type == pygame.QUIT:
                 RUN = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                PLAYER.shoot()
-
-        for laser in PLAYER.lasers:
-            laser.draw()
-            laser.move()
+                direction = PLAYER.get_shooting_direction()
+                laser = PLAYER.shoot(direction)
+                Lasers.append(laser)
         
-        PLAYER.lasers = [laser for laser in PLAYER.lasers if not laser.is_off_Screen]
+        for laser in Lasers:
+            laser.move()
+            laser.draw()
 
         for enemy in ENEMIES:
             enemy.move()
