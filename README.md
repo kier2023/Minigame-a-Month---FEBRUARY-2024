@@ -15,13 +15,14 @@ Lost in Space is a simple space-themed game implemented in Python using the Pyga
 
 ## Introduction
 
-Lost in Space is a minigame where the player controls a spaceship and needs to avoid asteroids. The goal is to survive as long as possible without colliding with asteroids.
+Lost in Space is a minigame where the player controls an astronaut, and needs to fight off waves of aliens. The goal is to make it to the final moon without dying, and clearing all moons of enemies.
 
 ## Features
 
-- Player spaceship movement with arrow keys
-- Randomly spawning asteroids
-- Collision detection with asteroids
+- Player movement with [W, A, S, D] keys
+- Randomly spawning waves of Aliens
+- Collision detection with Aliens
+- Weapons and lasers
 - Game over scenario
 
 ## Requirements
@@ -46,7 +47,7 @@ Lost in Space is a minigame where the player controls a spaceship and needs to a
    ```
 ## Controls:
 - W, A, S, D to move the player object (ship)
-- Left click to shoot asteroids
+- Left click to shoot at Aliens
 - Close the window to exit the game
 
 ## Contributing:
