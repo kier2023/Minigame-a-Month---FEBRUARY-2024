@@ -1,3 +1,9 @@
+########################################################################################
+#THIS GAME IS NO WHERE NEAR FINISHED, IT IS AN ACTIVE PROJECT, AND WILL CHANGE.        # 
+#                                                                                      #
+#The main.py will also change, and code will be tided up when I'm happy with everything#
+########################################################################################
+
 import pygame, sys
 import asyncio
 import random
