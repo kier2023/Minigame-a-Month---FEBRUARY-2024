@@ -1,293 +1,205 @@
-import pygame, sys
-import asyncio
+import pygame
+import sys
 import random
-import math
 
+class Player(pygame.sprite.Sprite):
+    def __init__(self, vel):
+        super().__init__()
+        self.images = {
+            "still_forward": pygame.image.load('Assets/Astronaut/Player_stillForward.png'),
+            "still_left": pygame.image.load('Assets/Astronaut/Player_stillLeft.png'),
+            "still_right": pygame.image.load('Assets/Astronaut/Player_stillRight.png'),
+            "still_up": pygame.image.load('Assets/Astronaut/Player_stillUp.png'),
+            "walking_forward_1": pygame.image.load('Assets/Astronaut/Player_walkingForward_1.png'),
+            "walking_forward_2": pygame.image.load('Assets/Astronaut/Player_walkingForward_2.png'),
+            "walking_up_1": pygame.image.load('Assets/Astronaut/Player_walkingUp_1.png'),
+            "walking_up_2": pygame.image.load('Assets/Astronaut/Player_walkingUp_2.png'),
+            "walking_left_1": pygame.image.load('Assets/Astronaut/Player_walkingLeft_1.png'),
+            "walking_left_2": pygame.image.load('Assets/Astronaut/Player_walkingLeft_2.png'),
+            "walking_right_1": pygame.image.load('Assets/Astronaut/Player_walkingRight_1.png'),
+            "walking_right_2": pygame.image.load('Assets/Astronaut/Player_walkingRight_2.png')}
+        
+        self.current_image = self.images["still_forward"]
+        self.rect = self.current_image.get_rect()
+        self.rect.center = (WIDTH // 2, HEIGHT // 2)
+        self.vel = vel
+
+    def update(self, keys):
+        if keys[pygame.K_w]:
+            self.rect.y -= self.vel
+            self.current_image = self.images["walking_up_1"]
+        elif keys[pygame.K_s]:
+            self.rect.y += self.vel
+            self.current_image = self.images["walking_forward_1"]
+        elif keys[pygame.K_a]:
+            self.rect.x -= self.vel
+            self.current_image = self.images["walking_left_1"]
+        elif keys[pygame.K_d]:
+            self.rect.x += self.vel
+            self.current_image = self.images["walking_right_1"]
+        else:
+            self.current_image = self.images["still_forward"]
+
+        # Boundary checks
+        self.rect.x = max(0, min(self.rect.x, WIDTH - PLAYER_SIZE))
+        self.rect.y = max(0, min(self.rect.y, HEIGHT - PLAYER_SIZE))
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y, size, vel):
+        super().__init__()
+        self.images = {
+            "still_forward": pygame.image.load('Assets/Enemies/Alien-stillForward.png'),
+            "still_left": pygame.image.load('Assets/Enemies/Alien-stillLeft.png'),
+            "still_right": pygame.image.load('Assets/Enemies/Alien-stillRight.png'),
+            "still_up": pygame.image.load('Assets/Enemies/Alien-stillUp.png'),
+            "walking_forward_1": pygame.image.load('Assets/Enemies/Alien-walkingForward1.png'),
+            "walking_forward_2": pygame.image.load('Assets/Enemies/Alien-walkingForward2.png'),
+            "walking_up_1": pygame.image.load('Assets/Enemies/Alien-walkingUp1.png'),
+            "walking_up_2": pygame.image.load('Assets/Enemies/Alien-walkingUp2.png'),
+            "walking_left_1": pygame.image.load('Assets/Enemies/Alien-walkingLeft1.png'),
+            "walking_left_2": pygame.image.load('Assets/Enemies/Alien-walkingLeft2.png'),
+            "walking_right_1": pygame.image.load('Assets/Enemies/Alien-walkingRight1.png'),
+            "walking_right_2": pygame.image.load('Assets/Enemies/Alien-walkingRight2.png')
+        }
+        self.current_image = self.images["still_forward"]
+        self.rect = self.current_image.get_rect()
+        self.rect.topleft = (x, y)
+        self.size = size
+        self.vel = vel
+
+    def update(self, player_rect):
+        if self.rect.x < player_rect.centerx:
+            self.rect.x += self.vel
+            self.current_image = self.images["walking_right_1"]
+        elif self.rect.x > player_rect.centerx:
+            self.rect.x -= self.vel
+            self.current_image = self.images["walking_left_1"]
+
+        if self.rect.y < player_rect.centery:
+            self.rect.y += self.vel
+            self.current_image = self.images["walking_down_1"]
+        elif self.rect.y > player_rect.centery:
+            self.rect.y -= self.vel
+            self.current_image = self.images["walking_up_1"]
+
+pygame.init()
+
+# Constants
 WIDTH, HEIGHT = 800, 800
-WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+PLAYER_SIZE = 50
+ENEMY_SIZE = 50
+BULLET_SIZE = 10
+FPS = 60
+GREEN = (0, 255, 0)
+
+BACKGROUND = pygame.image.load('Assets/backgrounds/Background 1.png')
+
+SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Lost in Space")
-Lasers = []
+CLOCK = pygame.time.Clock()
 
-#images!!! 
+player = Player(3)
+bullets = []
+enemies = pygame.sprite.Group()
+enemies = []
+wave_length = 5
 
-#backgrounds:
-MENU = pygame.image.load('Assets/backgrounds/bg.png')
-BACKGROUND1 = pygame.image.load('Assets/backgrounds/Background 1.png')
-BACKGROUND2 = pygame.image.load('Assets/backgrounds/Background 2.png')
-BACKGROUND3 = pygame.image.load('Assets/backgrounds/Background 3.png')
+# Game loop
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        elif event.type == pygame.MOUSEBUTTONDOWN:
 
-#Enemy Alien - Forgot to edit to transparent when editing the sprite frames, so I did it in python, which is why this part looks messy lol:
-ALIEN_STILL_FORWARD = pygame.image.load('Assets/Enemies/Alien-stillForward.png')
-ALIEN_STILL_UP = pygame.image.load('Assets/Enemies/Alien-stillUp.png')
-ALIEN_STILL_LEFT = pygame.image.load('Assets/Enemies/Alien-stillLeft.png')
-ALIEN_STILL_RIGHT = pygame.image.load('Assets/Enemies/Alien-stillRight.png')
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            direction = pygame.Vector2(mouse_x - player.rect.centerx, mouse_y - player.rect.centery).normalize()
+            bullet_velocity = direction * 2  
+            bullet_vel_x, bullet_vel_y = bullet_velocity.x, bullet_velocity.y
+            bullets.append({
+                "rect": pygame.Rect(player.rect.centerx - BULLET_SIZE // 2, player.rect.centery - BULLET_SIZE // 2, BULLET_SIZE, BULLET_SIZE),
+                "vel_x": bullet_vel_x,
+                "vel_y": bullet_vel_y})
 
+    keys = pygame.key.get_pressed()
+    player.update(keys)
 
-ALIEN_WALKING_FORWARD_1 = pygame.image.load('Assets/Enemies/Alien-walkingForward1.png')
-ALIEN_WALKING_FORWARD_2 = pygame.image.load('Assets/Enemies/Alien-walkingForward2.png')
+    SCREEN.blit(BACKGROUND, (0, 0))
 
-ALIEN_WALKING_UP_1 = pygame.image.load('Assets/Enemies/Alien-walkingUp1.png')
-ALIEN_WALKING_UP_2 = pygame.image.load('Assets/Enemies/Alien-walkingUp2.png')
-
-
-ALIEN_WALKING_LEFT_1 = pygame.image.load('Assets/Enemies/Alien-walkingLeft1.png')
-ALIEN_WALKING_LEFT_2 = pygame.image.load('Assets/Enemies/Alien-walkingLeft2.png')
-
-ALIEN_WALKING_RIGHT_1 = pygame.image.load('Assets/Enemies/Alien-walkingRight1.png')
-ALIEN_WALKING_RIGHT_2 = pygame.image.load('Assets/Enemies/Alien-walkingRight2.png')
-
-# Player - This time I made the background transparent lol.... I HATE MY LIFE.
-PLAYER_STILL_FORWARD = pygame.image.load('Assets/Astronaut/Player_stillForward.png')
-PLAYER_STILL_LEFT = pygame.image.load('Assets/Astronaut/Player_stillLeft.png')
-PLAYER_STILL_RIGHT = pygame.image.load('Assets/Astronaut/Player_stillRight.png')
-PLAYER_STILL_UP = pygame.image.load('Assets/Astronaut/Player_stillUp.png')
-
-PLAYER_WALKING_FORWARD_1 = pygame.image.load('Assets/Astronaut/Player_walkingForward_1.png')
-PLAYER_WALKING_FORWARD_2 = pygame.image.load('Assets/Astronaut/Player_walkingForward_2.png')
-
-PLAYER_WALKING_UP_1 = pygame.image.load('Assets/Astronaut/Player_walkingUp_1.png')
-PLAYER_WALKING_UP_2 = pygame.image.load('Assets/Astronaut/Player_walkingUp_2.png')
-
-PLAYER_WALKING_LEFT_1 = pygame.image.load('Assets/Astronaut/Player_walkingLeft_1.png')
-PLAYER_WALKING_LEFT_2 = pygame.image.load('Assets/Astronaut/Player_walkingLeft_2.png')
-
-PLAYER_WALKING_RIGHT_1 = pygame.image.load('Assets/Astronaut/Player_walkingRight_1.png')
-PLAYER_WALKING_RIGHT_2 = pygame.image.load('Assets/Astronaut/Player_walkingRight_2.png')
-
-#Player/Enemy lasers:
-PLAYER_LASER = pygame.image.load('Assets/lasers/2.png') # TEMPORARY BULLETS FOR TESTING
-ENEMY_LASER = pygame.image.load('Assets/lasers/1.png') # TEMPORARY BULLETS FOR TESTING
-
-class Alien:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.vel = 3
-        self.images_forward = [ALIEN_WALKING_FORWARD_1, ALIEN_STILL_FORWARD, ALIEN_WALKING_FORWARD_2]
-        self.images_up = [ALIEN_WALKING_UP_1, ALIEN_STILL_UP, ALIEN_WALKING_UP_2]
-        self.images_left = [ALIEN_WALKING_LEFT_1, ALIEN_STILL_LEFT, ALIEN_WALKING_LEFT_2]
-        self.images_right = [ALIEN_WALKING_RIGHT_1, ALIEN_STILL_RIGHT, ALIEN_WALKING_RIGHT_2]
-        self.current_images = self.images_forward
-        self.walk_count = 0
-        self.direction_timer = random.randint(30, 90)
-    
-    def move(self, player_x, player_y):
-        if self.direction_timer == 0:
-            direction = random.randint(0, 3)
-
-            if direction == 0:
-                self.current_images = self.images_forward
-            elif direction == 1:
-                self.current_images = self.images_up
-            elif direction == 2:
-                self.current_images = self.images_left
-            elif direction == 3:
-                self.current_images = self.images_right
-            
-            self.direction_timer = random.randint(30, 90)
-
-        else:
-            new_x = self.x
-            new_y = self.y
-
-            if self.current_images is self.images_forward:
-                new_y += self.vel
-            
-            elif self.current_images is self.images_up:
-                new_y -= self.vel
-            
-            elif self.current_images is self.images_left:
-                new_x -= self.vel
-            
-            elif self.current_images is self.images_right:
-                new_x += self.vel
-            
-            if 0 <= new_x <= WIDTH - self.current_images[0].get_width() and 0 <= new_y <= HEIGHT - self.current_images[0].get_height():
-                self.x = new_x
-                self.y = new_y
+    if not enemies:
+        for _ in range(wave_length):
+            side = random.choice(['left', 'right', 'top', 'bottom'])
+            if side == 'left':
+                enemy_x = -ENEMY_SIZE
+                enemy_y = random.randint(0, HEIGHT - ENEMY_SIZE)
+            elif side == 'right':
+                enemy_x = WIDTH
+                enemy_y = random.randint(0, HEIGHT - ENEMY_SIZE)
+            elif side == 'top':
+                enemy_x = random.randint(0, WIDTH - ENEMY_SIZE)
+                enemy_y = -ENEMY_SIZE
             else:
-                if self.current_images is self.images_forward:
-                    self.current_images = self.images_up
-                elif self.current_images is self.images_up:
-                    self.current_images = self.images_forward
-                elif self.current_images is self.images_left:
-                    self.current_images = self.images_right
-                elif self.current_images is self.images_right:
-                    self.current_images = self.images_left
-            
-            self.direction_timer -= 1
-            
-        self.walk_count = (self.walk_count + 1) % (len(self.current_images) * 3)
+                enemy_x = random.randint(0, WIDTH - ENEMY_SIZE)
+                enemy_y = HEIGHT - ENEMY_SIZE
 
-    def draw(self):
-        index = self.walk_count // 3
-        WIN.blit(self.current_images[index], (self.x, self.y))
+            new_enemy = Enemy(enemy_x, enemy_y, ENEMY_SIZE, 1) 
 
-class Laser:
-    def __init__(self, x, y, direction):
-        self.x = x
-        self.y = y
-        self.vel = 5
-        self.direction = direction
-        self.image = PLAYER_LASER
-        self.image = pygame.transform.scale(self.image, (15, 15)) # I think this might be a little on the smaller side.
+            while any(existing_enemy.rect.colliderect(new_enemy.rect) for existing_enemy in enemies):
+                if side == 'left':
+                    new_enemy.rect.x = -ENEMY_SIZE
+                    new_enemy.rect.y = random.randint(0, HEIGHT - ENEMY_SIZE)
+                elif side == 'right':
+                    new_enemy.rect.x = WIDTH
+                    new_enemy.rect.y = random.randint(0, HEIGHT - ENEMY_SIZE)
+                elif side == 'top':
+                    new_enemy.rect.x = random.randint(0, WIDTH - ENEMY_SIZE)
+                    new_enemy.rect.y = -ENEMY_SIZE
+                else:
+                    new_enemy.rect.x = random.randint(0, WIDTH - ENEMY_SIZE)
+                    new_enemy.rect.y = HEIGHT - ENEMY_SIZE
 
-    def move(self):
-        if self.direction == "UP":
-            self.y -= self.vel
-        elif self.direction == "DOWN":
-            self.y += self.vel
-        elif self.direction == "LEFT":
-            self.x -= self.vel
-        elif self.direction == "RIGHT":
-            self.x += self.vel
+            enemies.append(new_enemy)
+
+    for enemy in enemies:
+        if enemy.rect.x < player.rect.centerx:
+            enemy.rect.x += 1
+        elif enemy.rect.x > player.rect.centerx:
+            enemy.rect.x -= 1
+
+        if enemy.rect.y < player.rect.centery:
+            enemy.rect.y += 1
+        elif enemy.rect.y > player.rect.centery:
+            enemy.rect.y -= 1
+
+        SCREEN.blit(enemy.current_image, enemy.rect)
     
-    def draw(self):
-        WIN.blit(self.image, (self.x, self.y))
+    bullets_to_remove = []
 
-class Player:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.vel = 3
-        self.images_forward = [PLAYER_WALKING_FORWARD_1, PLAYER_STILL_FORWARD, PLAYER_WALKING_FORWARD_2]
-        self.images_up = [PLAYER_WALKING_UP_1, PLAYER_STILL_UP, PLAYER_WALKING_UP_2]
-        self.images_left = [PLAYER_WALKING_LEFT_1, PLAYER_STILL_LEFT, PLAYER_WALKING_LEFT_2]
-        self.images_right = [PLAYER_WALKING_RIGHT_1, PLAYER_STILL_RIGHT, PLAYER_WALKING_RIGHT_2]
-        self.current_images = self.images_forward
-        self.walk_count = 0
+    for bullet in bullets:
+        bullet["rect"].x += bullet["rect"].width * bullet["vel_x"]
+        bullet["rect"].y += bullet["rect"].height * bullet["vel_y"]
 
-    def shoot(self, direction):
-        laser = Laser(self.x + self.current_images[0].get_width() // 2, self.y + self.current_images[0].get_height() // 2, direction)
-        return laser
+        bullet_marked_for_removal = False
+        for enemy in enemies.copy():
+            if bullet["rect"].colliderect(enemy):
+                bullets_to_remove.append(bullet)
+                bullet_marked_for_removal = True
+                enemies.remove(enemy)
+                break 
 
-    def move(self, keys):
-        x_movement = 0
-        y_movement = 0
+        if bullet_marked_for_removal:
+            break 
 
-        if keys[pygame.K_a] and self.x > self.vel:
-            x_movement -= self.vel
-            self.current_images = self.images_left
-        elif keys[pygame.K_d] and self.x < WIDTH - self.vel - self.current_images[0].get_width():
-            x_movement += self.vel
-            self.current_images = self.images_right
+    for bullet in bullets_to_remove:
+        bullets.remove(bullet)
 
-        if keys[pygame.K_w] and self.y > self.vel:
-            y_movement -= self.vel
-            self.current_images = self.images_up
-        elif keys[pygame.K_s] and self.y < HEIGHT - self.vel - self.current_images[0].get_height():
-            y_movement += self.vel
-            self.current_images = self.images_forward
-        
-        else:
-            if self.current_images == self.images_left:
-                self.current_images = [PLAYER_STILL_LEFT]
-            elif self.current_images == self.images_right:
-                self.current_images = [PLAYER_STILL_RIGHT]
-            elif self.current_images == self.images_up:
-                self.current_images = [PLAYER_STILL_UP]
-            elif self.current_images == self.images_forward:
-                self.current_images = [PLAYER_STILL_FORWARD]
+    for bullet in bullets:
+        pygame.draw.circle(SCREEN, GREEN, (int(bullet["rect"].x), int(bullet["rect"].y)), BULLET_SIZE // 2)
 
-        self.x += x_movement
-        self.y += y_movement
-    
-        self.walk_count = (self.walk_count + 1) % (len(self.current_images) * 3)
+    SCREEN.blit(player.current_image, player.rect)
 
-        mouse_buttons = pygame.mouse.get_pressed()
-        if mouse_buttons[0]:
-            direction = self.get_shooting_direction()
-            laser = self.shoot(direction)
-            Lasers.append(laser)
-    
-    def get_shooting_direction(self):
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        angle = math.atan2(mouse_y - (self.y + self.current_images[0].get_height() // 2),
-                           mouse_x - (self.x + self.current_images[0].get_width() // 2))
-        angle = math.degrees(angle)
+    if not enemies:
+        wave_length += 2
 
-        if -45 <= angle <= 45:
-            return "RIGHT"
-        elif 45 < angle <= 135:
-            return "DOWN"
-        elif -135 <= angle < -45:
-            return "UP"
-        else:
-            return "LEFT"
-
-    def draw(self, win):
-        index = self.walk_count // 3
-        win.blit(self.current_images[index], (self.x, self.y))
-
-#Game loop:
-pygame.font.init()
-
-async def main():
-    run = False
-    FPS = 60
-    LEVEL, LIVES = 0, 5
-    MAIN_FONT = pygame.font.Font('Fonts/SPACE.ttf', 30)
-    ENEMIES = []
-    WAVE_LEN = 8
-    LOST = False
-    PLAYER = Player(WIDTH // 2, HEIGHT // 2)
-    CLOCK = pygame.time.Clock()
-
-    while not run:
-        CLOCK.tick(FPS)
-        menu_scaled = pygame.transform.scale(MENU, (WIDTH, HEIGHT))
-        WIN.blit(menu_scaled, (0, 0))
-
-
-        #Click to start message:
-        start_message = MAIN_FONT.render('Click to Start!', True, (255, 255, 255))
-        WIN.blit(start_message, (WIDTH // 2 - start_message.get_width() // 2, HEIGHT // 2 - start_message.get_height() // 2))
-
-        pygame.display.update()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                run = True
-        
-        await asyncio.sleep(0)
-    
-    for _ in range(WAVE_LEN):
-        alien = Alien(random.randint(0, WIDTH - ALIEN_STILL_FORWARD.get_width()), random.randint(0, HEIGHT - ALIEN_STILL_FORWARD.get_height()))
-        ENEMIES.append(alien)
-
-    Lasers = []
-
-    while run:
-        CLOCK.tick(FPS)
-        WIN.blit(BACKGROUND1, (0, 0))
-
-        keys = pygame.key.get_pressed()
-        PLAYER.move(keys)
-        PLAYER.draw(WIN)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                RUN = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                direction = PLAYER.get_shooting_direction()
-                laser = PLAYER.shoot(direction)
-                Lasers.append(laser)
-        
-        for laser in Lasers:
-            laser.move()
-            laser.draw()
-
-        for enemy in ENEMIES:
-            enemy.move(PLAYER.x, PLAYER.y)
-            enemy.draw()
-
-        pygame.display.update()
-        await asyncio.sleep(0)
-    
-    pygame.quit()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    pygame.display.flip()
+    CLOCK.tick(FPS)
