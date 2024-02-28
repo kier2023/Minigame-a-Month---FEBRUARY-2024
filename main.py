@@ -260,26 +260,6 @@ while True:
         continue # Fuck it.
 
     SCREEN.blit(BACKGROUND, (0, 0))
-    SCREEN.blit(BACKGROUND2, (0, 0))
-
-    health_bar_width = int((player.health / player.max_health) * BAR_WIDTH)
-    pygame.draw.rect(SCREEN, (150, 0, 0), (WIDTH // 2 - BAR_WIDTH // 2, 10, health_bar_width, BAR_HEIGHT))
-    pygame.draw.rect(SCREEN, RED, (WIDTH // 2 - BAR_WIDTH // 2, 10, BAR_WIDTH, BAR_HEIGHT), 2)
-    SCREEN.blit(HEALTH_IMG, (WIDTH // 2 + BAR_WIDTH // 2 + 10, 10))
-
-
-    xp_bar_width = int((player.xp / 100) * BAR_WIDTH)  
-    xp_bar_rect = pygame.Rect(WIDTH // 2 - BAR_WIDTH // 2, 40, xp_bar_width, BAR_HEIGHT)
-    pygame.draw.rect(SCREEN, (0, 150, 0), xp_bar_rect)
-    pygame.draw.rect(SCREEN, GREEN, (WIDTH // 2 - BAR_WIDTH // 2, 40, BAR_WIDTH, BAR_HEIGHT), 2)
-    pygame.draw.line(SCREEN, GREEN, (xp_bar_rect.right, 40), (xp_bar_rect.right, 40 + BAR_HEIGHT), 2)
-    SCREEN.blit(XP_IMG, (WIDTH // 2 + BAR_WIDTH // 2 + 10, 40))
-
-
-    ammo_bar_width = int((player.ammo / player.max_ammo) * BAR_WIDTH)
-    pygame.draw.rect(SCREEN, (0, 0, 150), (WIDTH // 2 - BAR_WIDTH // 2, 70, ammo_bar_width, BAR_HEIGHT))
-    pygame.draw.rect(SCREEN, BLUE, (WIDTH // 2 - BAR_WIDTH // 2, 70, BAR_WIDTH, BAR_HEIGHT), 2)
-    SCREEN.blit(AMO_IMG, (WIDTH // 2 + BAR_WIDTH // 2 + 10, 70))
 
     if not enemies:
         for _ in range(wave_length):
@@ -377,6 +357,27 @@ while True:
     for bullet in bullets:
         color = RED if not bullet["player"] else GREEN
         pygame.draw.circle(SCREEN, color, (int(bullet["rect"].x), int(bullet["rect"].y)), BULLET_SIZE // 2)
+
+    SCREEN.blit(BACKGROUND2, (0, 0))
+
+    health_bar_width = int((player.health / player.max_health) * BAR_WIDTH)
+    pygame.draw.rect(SCREEN, (150, 0, 0), (WIDTH // 2 - BAR_WIDTH // 2, 10, health_bar_width, BAR_HEIGHT))
+    pygame.draw.rect(SCREEN, RED, (WIDTH // 2 - BAR_WIDTH // 2, 10, BAR_WIDTH, BAR_HEIGHT), 2)
+    SCREEN.blit(HEALTH_IMG, (WIDTH // 2 + BAR_WIDTH // 2 + 10, 10))
+
+
+    xp_bar_width = int((player.xp / 100) * BAR_WIDTH)  
+    xp_bar_rect = pygame.Rect(WIDTH // 2 - BAR_WIDTH // 2, 40, xp_bar_width, BAR_HEIGHT)
+    pygame.draw.rect(SCREEN, (0, 150, 0), xp_bar_rect)
+    pygame.draw.rect(SCREEN, GREEN, (WIDTH // 2 - BAR_WIDTH // 2, 40, BAR_WIDTH, BAR_HEIGHT), 2)
+    pygame.draw.line(SCREEN, GREEN, (xp_bar_rect.right, 40), (xp_bar_rect.right, 40 + BAR_HEIGHT), 2)
+    SCREEN.blit(XP_IMG, (WIDTH // 2 + BAR_WIDTH // 2 + 10, 40))
+
+
+    ammo_bar_width = int((player.ammo / player.max_ammo) * BAR_WIDTH)
+    pygame.draw.rect(SCREEN, (0, 0, 150), (WIDTH // 2 - BAR_WIDTH // 2, 70, ammo_bar_width, BAR_HEIGHT))
+    pygame.draw.rect(SCREEN, BLUE, (WIDTH // 2 - BAR_WIDTH // 2, 70, BAR_WIDTH, BAR_HEIGHT), 2)
+    SCREEN.blit(AMO_IMG, (WIDTH // 2 + BAR_WIDTH // 2 + 10, 70))
 
     score_font = pygame.font.Font('Fonts/SPACE.ttf', 30)
     score_text = score_font.render(f'Score: {player_score}', True, WHITE)
