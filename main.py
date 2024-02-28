@@ -11,6 +11,7 @@ FPS = 60
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
+WHITE = (255, 255, 255)
 BAR_WIDTH = 550
 BAR_HEIGHT = 25
 
@@ -21,6 +22,8 @@ XP_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/xp.png'), (30,
 DROP_DURATION = 2000  
 FLASH_THRESHOLD = 1500 
 FLASH_INTERVAL = 200  
+
+XP_TO_PAUSE = 100
 
 BACKGROUND = pygame.image.load('Assets/backgrounds/Background 1.png')
 
@@ -114,6 +117,13 @@ SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Lost in Space")
 CLOCK = pygame.time.Clock()
 
+player = Player(3, 100, 50)
+bullets = []
+enemies = pygame.sprite.Group()
+enemies = []
+drops = []
+wave_length = 5
+
 def handle_drops(enemy_rect):
     drop_type = random.choice(["ammo", "health", "xp"])
     drop_rect = pygame.Rect(enemy_rect.centerx, enemy_rect.centery, 30, 30)
@@ -128,12 +138,14 @@ def handle_drops(enemy_rect):
     drop_timer = DROP_DURATION 
     return {"type": drop_type, "rect": drop_rect, "img": drop_img, "timer": drop_timer}
 
-player = Player(3, 100, 50)
-bullets = []
-enemies = pygame.sprite.Group()
-enemies = []
-drops = []
-wave_length = 5
+def pause_options():
+    option_font = pygame.font.Font('Fonts/SPACE.ttf', 30) # Might be to big???????????????????
+    
+    health_text = option_font.render("Press 1 for health", True, WHITE)
+    SCREEN.blit(health_text, (WIDTH // 2 - health_text.get_width() // 2, HEIGHT // 2 - 50))
+
+    ammo_text = option_font.render("Press 2 for Ammo", True, WHITE)
+    SCREEN.blit(ammo_text, (WIDTH // 2 - ammo_text.get_width() // 2, HEIGHT // 2 + 50))
 
 # Game loop
 while True:
@@ -168,6 +180,28 @@ while True:
 
     keys = pygame.key.get_pressed()
     player.update(keys)
+
+    if player.xp >= XP_TO_PAUSE:
+        pygame.time.delay(1000) # = 1 second I think?
+        paused = True
+        while paused:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_1:
+                        player.health = player.max_health
+                        player.xp = 0
+                        paused = False
+                    elif event.key == pygame.K_2:
+                        player.ammo = player.max_ammo
+                        player.xp = 0
+                        paused = False
+            
+            pause_options()
+            pygame.display.flip()
+            CLOCK.tick(FPS)
 
     SCREEN.blit(BACKGROUND, (0, 0))
 
