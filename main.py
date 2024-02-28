@@ -18,52 +18,23 @@ BACKGROUND3 = pygame.image.load('Assets/backgrounds/Background 3.png')
 
 #Enemy Alien - Forgot to edit to transparent when editing the sprite frames, so I did it in python, which is why this part looks messy lol:
 ALIEN_STILL_FORWARD = pygame.image.load('Assets/Enemies/Alien-stillForward.png')
-ALIEN_STILL_FORWARD = ALIEN_STILL_FORWARD.convert_alpha()
-ALIEN_STILL_FORWARD.set_colorkey((0, 0, 0))
-
 ALIEN_STILL_UP = pygame.image.load('Assets/Enemies/Alien-stillUp.png')
-ALIEN_STILL_UP = ALIEN_STILL_UP.convert_alpha()
-ALIEN_STILL_UP.set_colorkey((0, 0, 0))
-
 ALIEN_STILL_LEFT = pygame.image.load('Assets/Enemies/Alien-stillLeft.png')
-ALIEN_STILL_LEFT = ALIEN_STILL_LEFT.convert_alpha()
-ALIEN_STILL_LEFT.set_colorkey((0, 0, 0))
-
 ALIEN_STILL_RIGHT = pygame.image.load('Assets/Enemies/Alien-stillRight.png')
-ALIEN_STILL_RIGHT = ALIEN_STILL_RIGHT.convert_alpha()
-ALIEN_STILL_RIGHT.set_colorkey((0, 0, 0))
+
 
 ALIEN_WALKING_FORWARD_1 = pygame.image.load('Assets/Enemies/Alien-walkingForward1.png')
-ALIEN_WALKING_FORWARD_1 = ALIEN_WALKING_FORWARD_1.convert_alpha()
-ALIEN_WALKING_FORWARD_1.set_colorkey((0, 0, 0))
-
 ALIEN_WALKING_FORWARD_2 = pygame.image.load('Assets/Enemies/Alien-walkingForward2.png')
-ALIEN_WALKING_FORWARD_2 = ALIEN_WALKING_FORWARD_2.convert_alpha()
-ALIEN_WALKING_FORWARD_2.set_colorkey((0, 0, 0))
 
 ALIEN_WALKING_UP_1 = pygame.image.load('Assets/Enemies/Alien-walkingUp1.png')
-ALIEN_WALKING_UP_1 = ALIEN_WALKING_UP_1.convert_alpha()
-ALIEN_WALKING_UP_1.set_colorkey((0, 0, 0))
-
 ALIEN_WALKING_UP_2 = pygame.image.load('Assets/Enemies/Alien-walkingUp2.png')
-ALIEN_WALKING_UP_2 = ALIEN_WALKING_UP_2.convert_alpha()
-ALIEN_WALKING_UP_2.set_colorkey((0, 0, 0))
+
 
 ALIEN_WALKING_LEFT_1 = pygame.image.load('Assets/Enemies/Alien-walkingLeft1.png')
-ALIEN_WALKING_LEFT_1 = ALIEN_WALKING_LEFT_1.convert_alpha()
-ALIEN_WALKING_LEFT_1.set_colorkey((0, 0, 0))
-
 ALIEN_WALKING_LEFT_2 = pygame.image.load('Assets/Enemies/Alien-walkingLeft2.png')
-ALIEN_WALKING_LEFT_2 = ALIEN_WALKING_LEFT_2.convert_alpha()
-ALIEN_WALKING_LEFT_2.set_colorkey((0, 0, 0))
 
 ALIEN_WALKING_RIGHT_1 = pygame.image.load('Assets/Enemies/Alien-walkingRight1.png')
-ALIEN_WALKING_RIGHT_1 = ALIEN_WALKING_RIGHT_1.convert_alpha()
-ALIEN_WALKING_RIGHT_1.set_colorkey((0, 0, 0))
-
 ALIEN_WALKING_RIGHT_2 = pygame.image.load('Assets/Enemies/Alien-walkingRight2.png')
-ALIEN_WALKING_RIGHT_2 = ALIEN_WALKING_RIGHT_2.convert_alpha()
-ALIEN_WALKING_RIGHT_2.set_colorkey((0, 0, 0))
 
 # Player - This time I made the background transparent lol.... I HATE MY LIFE.
 PLAYER_STILL_FORWARD = pygame.image.load('Assets/Astronaut/Player_stillForward.png')
@@ -291,8 +262,7 @@ async def main():
 
     while run:
         CLOCK.tick(FPS)
-        scaled_background = pygame.transform.scale(BACKGROUND1, (WIDTH, HEIGHT))
-        WIN.blit(scaled_background, (0, 0))
+        WIN.blit(BACKGROUND1, (0, 0))
 
         keys = pygame.key.get_pressed()
         PLAYER.move(keys)
@@ -311,7 +281,7 @@ async def main():
             laser.draw()
 
         for enemy in ENEMIES:
-            enemy.move()
+            enemy.move(PLAYER.x, PLAYER.y)
             enemy.draw()
 
         pygame.display.update()
