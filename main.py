@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import asyncio
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, vel, max_health, max_ammo):
@@ -28,7 +29,7 @@ class Player(pygame.sprite.Sprite):
         self.ammo = max_ammo
         self.max_health = max_health
         self.max_ammo = max_ammo
-        self.original_vel = vel #??
+        self.original_vel = vel 
 
     def update(self, keys):
         move_up = keys[pygame.K_w]
@@ -54,11 +55,6 @@ class Player(pygame.sprite.Sprite):
 
         if not any([move_up, move_down, move_left, move_right]):
             self.current_image = self.images["still_forward"]
-        
-        if keys[pygame.K_LSHIFT]:
-            self.vel = self.original_vel + 3
-        else:
-            self.vel = self.original_vel
 
         self.rect.x = max(0, min(self.rect.x, WIDTH - PLAYER_SIZE))
         self.rect.y = max(0, min(self.rect.y, HEIGHT - PLAYER_SIZE))
@@ -88,7 +84,7 @@ class Enemy(pygame.sprite.Sprite):
         self.shoot_cooldown = random.randint(100, 2000)
         self.last_shot = random.randint(0, 500) + pygame.time.get_ticks()
         self.bullet_size = 10
-        self.bullet_vel = 0.3
+        self.bullet_vel = 0.2
         self.bullet_img = None
         self.spawn_time = pygame.time.get_ticks()
         self.acc = 0.03
@@ -116,11 +112,13 @@ class Enemy(pygame.sprite.Sprite):
             shoot(self, player_rect.centerx + 5 - random.randint(0, 10), player_rect.centery + 5 - random.randint(0, 10), False, self.bullet_size, self.bullet_vel, self.bullet_img)
 
 def handle_drops(enemy_rect):
-    drop_type = random.choice(["ammo", "health", "xp"])
+    drop_type = random.choice(["ammo", "health", "speed"])
     drop_rect = pygame.Rect(enemy_rect.centerx, enemy_rect.centery, 30, 30)
 
     if drop_type == "ammo":
         drop_img = AMO_IMG
+    elif drop_type == "speed":
+        drop_img = SPEED_IMG
     else:
         drop_img = HEALTH_IMG
 
@@ -168,6 +166,7 @@ RESTART_TEXT = RESTART_FONT.render("GAME OVER! Press R to restart", True, WHITE)
 AMO_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/ammo crate.png'), (30, 30))
 HEALTH_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/health.png'), (30, 30))
 XP_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/xp.png'), (30, 30))
+SPEED_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/speed.png'), (30, 30))
 
 DROP_DURATION = 2000  
 FLASH_THRESHOLD = 1500 
@@ -176,6 +175,7 @@ FLASH_INTERVAL = 200
 XP_TO_PAUSE = 100
 
 BACKGROUND = pygame.image.load('Assets/backgrounds/Background 1.png')
+BACKGROUND2 = pygame.image.load('Assets/backgrounds/Background 2.png')
 
 pygame.init()
 
@@ -190,6 +190,8 @@ enemies = []
 drops = []
 wave_length = 5
 last_wave = -10000
+speed_boost_start = 0
+player_score = 0
 
 # Game loop
 while True:
@@ -258,6 +260,7 @@ while True:
         continue # Fuck it.
 
     SCREEN.blit(BACKGROUND, (0, 0))
+    SCREEN.blit(BACKGROUND2, (0, 0))
 
     health_bar_width = int((player.health / player.max_health) * BAR_WIDTH)
     pygame.draw.rect(SCREEN, (150, 0, 0), (WIDTH // 2 - BAR_WIDTH // 2, 10, health_bar_width, BAR_HEIGHT))
@@ -320,10 +323,18 @@ while True:
             elif drop["type"] == "health" and player.health < player.max_health:
                 player.health += 10  
                 drops.remove(drop) 
-
+            elif drop["type"] == "speed":
+                player.vel = player.original_vel + 3
+                speed_boost_start = pygame.time.get_ticks()
+                drops.remove(drop)
+                
     for enemy in enemies:
         enemy.update(player.rect)
         SCREEN.blit(enemy.current_image, enemy.rect)
+
+    if speed_boost_start > 0 and pygame.time.get_ticks() - speed_boost_start >= 5000:
+        player.vel = player.original_vel
+        speed_boost_start = 0
 
     bullets_to_remove = []
     enemies_to_remove = []
@@ -341,6 +352,7 @@ while True:
                 player.xp += 5
                 drop = handle_drops(enemy.rect)
                 drops.append(drop)
+                player_score += 5
                 break
 
         if bullet["rect"].colliderect(player.rect) and not bullet["player"]:
@@ -366,6 +378,9 @@ while True:
         color = RED if not bullet["player"] else GREEN
         pygame.draw.circle(SCREEN, color, (int(bullet["rect"].x), int(bullet["rect"].y)), BULLET_SIZE // 2)
 
+    score_font = pygame.font.Font('Fonts/SPACE.ttf', 30)
+    score_text = score_font.render(f'Score: {player_score}', True, WHITE)
+    SCREEN.blit(score_text, (WIDTH - 250, HEIGHT - 50))
     SCREEN.blit(player.current_image, player.rect)
 
     if not enemies:
