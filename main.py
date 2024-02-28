@@ -28,22 +28,37 @@ class Player(pygame.sprite.Sprite):
         self.ammo = max_ammo
         self.max_health = max_health
         self.max_ammo = max_ammo
+        self.original_vel = vel #??
 
     def update(self, keys):
-        if keys[pygame.K_w]:
+        move_up = keys[pygame.K_w]
+        move_down = keys[pygame.K_s]
+        move_left = keys[pygame.K_a]
+        move_right = keys[pygame.K_d]
+
+        if move_up and not move_down:
             self.rect.y -= self.vel
             self.current_image = self.images["walking_up_1"]
-        elif keys[pygame.K_s]:
+
+        elif move_down and not move_up:
             self.rect.y += self.vel
-            self.current_image = self.images["walking_forward_1"]
-        elif keys[pygame.K_a]:
+            self.current_image = self.images["walking_forward_1"]   
+
+        elif move_left and not move_right:
             self.rect.x -= self.vel
             self.current_image = self.images["walking_left_1"]
-        elif keys[pygame.K_d]:
+
+        elif move_right and not move_left:
             self.rect.x += self.vel
             self.current_image = self.images["walking_right_1"]
-        else:
+
+        if not any([move_up, move_down, move_left, move_right]):
             self.current_image = self.images["still_forward"]
+        
+        if keys[pygame.K_LSHIFT]:
+            self.vel = self.original_vel + 3
+        else:
+            self.vel = self.original_vel
 
         self.rect.x = max(0, min(self.rect.x, WIDTH - PLAYER_SIZE))
         self.rect.y = max(0, min(self.rect.y, HEIGHT - PLAYER_SIZE))
@@ -63,7 +78,7 @@ class Enemy(pygame.sprite.Sprite):
             "walking_left_1": pygame.image.load('Assets/Enemies/Alien-walkingLeft1.png'),
             "walking_left_2": pygame.image.load('Assets/Enemies/Alien-walkingLeft2.png'),
             "walking_right_1": pygame.image.load('Assets/Enemies/Alien-walkingRight1.png'),
-            "walking_right_2": pygame.image.load('Assets/Enemies/Alien-walkingRight2.png')} #IMAGINE IMAGINE IMAGINE IMAGINE IMAGINE IMAGINE IMAGINE IMAGINE....
+            "walking_right_2": pygame.image.load('Assets/Enemies/Alien-walkingRight2.png')} 
         
         self.current_image = self.images["still_forward"]
         self.rect = self.current_image.get_rect()
@@ -73,7 +88,7 @@ class Enemy(pygame.sprite.Sprite):
         self.shoot_cooldown = random.randint(100, 2000)
         self.last_shot = random.randint(0, 500) + pygame.time.get_ticks()
         self.bullet_size = 10
-        self.bullet_vel = 0.5
+        self.bullet_vel = 0.3
         self.bullet_img = None
         self.spawn_time = pygame.time.get_ticks()
         self.acc = 0.03
@@ -106,10 +121,8 @@ def handle_drops(enemy_rect):
 
     if drop_type == "ammo":
         drop_img = AMO_IMG
-    elif drop_type == "health":
-        drop_img = HEALTH_IMG
     else:
-        drop_img = XP_IMG
+        drop_img = HEALTH_IMG
 
     drop_timer = DROP_DURATION 
     return {"type": drop_type, "rect": drop_rect, "img": drop_img, "timer": drop_timer}
@@ -145,6 +158,12 @@ BLUE = (0, 0, 255)
 WHITE = (255, 255, 255)
 BAR_WIDTH = 550
 BAR_HEIGHT = 25
+WAVE_DELAY = 5000
+
+pygame.font.init()
+
+RESTART_FONT = pygame.font.Font('Fonts/SPACE.ttf', 30)
+RESTART_TEXT = RESTART_FONT.render("GAME OVER! Press R to restart", True, WHITE)
 
 AMO_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/ammo crate.png'), (30, 30))
 HEALTH_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/health.png'), (30, 30))
@@ -170,6 +189,7 @@ enemies = pygame.sprite.Group()
 enemies = []
 drops = []
 wave_length = 5
+last_wave = -10000
 
 # Game loop
 while True:
@@ -183,21 +203,21 @@ while True:
                 shoot(player, mouse_x, mouse_y, True, BULLET_SIZE, 2, None) 
                 player.ammo -= 1 
 
+    keys = pygame.key.get_pressed()
+    player.update(keys)
+
     for drop in drops.copy():
         drop["timer"] -= CLOCK.get_rawtime()  
 
         if drop["timer"] < FLASH_THRESHOLD:
 
-            if drop["timer"] % (2 * FLASH_INTERVAL) < FLASH_INTERVAL:
+            if drop["timer"] % (2 * FLASH_INTERVAL) < FLASH_INTERVAL: # Flash interval doesn't even work...
                 SCREEN.blit(drop["img"], drop["rect"])
 
         if drop["timer"] <= 0:
             drops.remove(drop) 
         else:
             SCREEN.blit(drop["img"], drop["rect"]) 
-
-    keys = pygame.key.get_pressed()
-    player.update(keys)
 
     if player.xp >= XP_TO_PAUSE:
         paused = True
@@ -219,6 +239,24 @@ while True:
             pause_options()
             pygame.display.flip()
             CLOCK.tick(FPS)
+    
+    if player.health <= 0:
+        SCREEN.blit(RESTART_TEXT, (WIDTH // 2 - RESTART_TEXT.get_width() // 2, HEIGHT // 2))
+        pygame.display.flip()
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_r]:
+            player.health = player.max_health
+            player.ammo = player.max_ammo
+            player.xp = 0
+            bullets.clear()
+            enemies.clear()
+            drops.clear()
+            wave_length = 5
+        
+        pygame.display.flip()
+        CLOCK.tick(FPS)
+        continue # Fuck it.
 
     SCREEN.blit(BACKGROUND, (0, 0))
 
@@ -241,7 +279,7 @@ while True:
     pygame.draw.rect(SCREEN, BLUE, (WIDTH // 2 - BAR_WIDTH // 2, 70, BAR_WIDTH, BAR_HEIGHT), 2)
     SCREEN.blit(AMO_IMG, (WIDTH // 2 + BAR_WIDTH // 2 + 10, 70))
 
-    if not enemies:
+    if not enemies and pygame.time.get_ticks() - last_wave >= WAVE_DELAY:
         for _ in range(wave_length):
             side = random.choice(['left', 'right', 'top', 'bottom'])
             if side == 'left':
@@ -272,8 +310,10 @@ while True:
                 else:
                     new_enemy.rect.x = random.randint(0, WIDTH - ENEMY_SIZE)
                     new_enemy.rect.y = HEIGHT - ENEMY_SIZE
-
+            
+            last_wave = pygame.time.get_ticks()
             enemies.append(new_enemy)
+
 
     for drop in drops.copy():
         if player.rect.colliderect(drop["rect"]):
@@ -283,9 +323,6 @@ while True:
             elif drop["type"] == "health" and player.health < player.max_health:
                 player.health += 10  
                 drops.remove(drop) 
-            elif drop["type"] == "xp":
-                player.xp += 10  
-                drops.remove(drop)  
 
     for enemy in enemies:
         enemy.update(player.rect)
@@ -303,6 +340,7 @@ while True:
                 bullets_to_remove.append(bullet)
                 bullet_marked_for_removal = True
                 enemies.remove(enemy)
+                player.xp += 5
                 drop = handle_drops(enemy.rect)
                 drops.append(drop)
                 break 
@@ -310,7 +348,7 @@ while True:
         if bullet["rect"].colliderect(player) and not bullet["player"]:
             bullets_to_remove.append(bullet)
             bullet_marked_for_removal = True
-            # damage reduction here.
+            player.health -= 10
             break 
 
         if bullet_marked_for_removal:
