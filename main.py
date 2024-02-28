@@ -198,10 +198,10 @@ while True:
             pygame.quit()
             sys.exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if player.ammo > 0: 
+            if player.ammo > 0:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
-                shoot(player, mouse_x, mouse_y, True, BULLET_SIZE, 2, None) 
-                player.ammo -= 1 
+                shoot(player, mouse_x, mouse_y, True, BULLET_SIZE, 2, None)
+                player.ammo -= 1
 
     keys = pygame.key.get_pressed()
     player.update(keys)
@@ -252,7 +252,6 @@ while True:
             bullets.clear()
             enemies.clear()
             drops.clear()
-            wave_length = 5
         
         pygame.display.flip()
         CLOCK.tick(FPS)
@@ -279,7 +278,7 @@ while True:
     pygame.draw.rect(SCREEN, BLUE, (WIDTH // 2 - BAR_WIDTH // 2, 70, BAR_WIDTH, BAR_HEIGHT), 2)
     SCREEN.blit(AMO_IMG, (WIDTH // 2 + BAR_WIDTH // 2 + 10, 70))
 
-    if not enemies and pygame.time.get_ticks() - last_wave >= WAVE_DELAY:
+    if not enemies:
         for _ in range(wave_length):
             side = random.choice(['left', 'right', 'top', 'bottom'])
             if side == 'left':
@@ -311,9 +310,7 @@ while True:
                     new_enemy.rect.x = random.randint(0, WIDTH - ENEMY_SIZE)
                     new_enemy.rect.y = HEIGHT - ENEMY_SIZE
             
-            last_wave = pygame.time.get_ticks()
             enemies.append(new_enemy)
-
 
     for drop in drops.copy():
         if player.rect.colliderect(drop["rect"]):
@@ -329,6 +326,7 @@ while True:
         SCREEN.blit(enemy.current_image, enemy.rect)
 
     bullets_to_remove = []
+    enemies_to_remove = []
 
     for bullet in bullets:
         bullet["rect"].x += bullet["rect"].width * bullet["vel_x"]
@@ -336,23 +334,27 @@ while True:
 
         bullet_marked_for_removal = False
         for enemy in enemies.copy():
-            if bullet["rect"].colliderect(enemy) and bullet["player"]:
+            if bullet["rect"].colliderect(enemy.rect) and bullet["player"]:
                 bullets_to_remove.append(bullet)
                 bullet_marked_for_removal = True
-                enemies.remove(enemy)
+                enemies_to_remove.append(enemy)  # Add enemy to the removal list
                 player.xp += 5
                 drop = handle_drops(enemy.rect)
                 drops.append(drop)
-                break 
+                break
 
-        if bullet["rect"].colliderect(player) and not bullet["player"]:
+        if bullet["rect"].colliderect(player.rect) and not bullet["player"]:
             bullets_to_remove.append(bullet)
             bullet_marked_for_removal = True
             player.health -= 10
-            break 
+            break
 
         if bullet_marked_for_removal:
-            break 
+            break
+
+    # Remove enemies after the loop
+    for enemy in enemies_to_remove:
+        enemies.remove(enemy)
 
     for drop in drops:
         SCREEN.blit(drop["img"], drop["rect"])
