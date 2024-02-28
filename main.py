@@ -2,31 +2,6 @@ import pygame
 import sys
 import random
 
-# Constants
-WIDTH, HEIGHT = 800, 800
-PLAYER_SIZE = 50
-ENEMY_SIZE = 50
-BULLET_SIZE = 10
-FPS = 60
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-WHITE = (255, 255, 255)
-BAR_WIDTH = 550
-BAR_HEIGHT = 25
-
-AMO_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/ammo crate.png'), (30, 30))
-HEALTH_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/health.png'), (30, 30))
-XP_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/xp.png'), (30, 30))
-
-DROP_DURATION = 2000  
-FLASH_THRESHOLD = 1500 
-FLASH_INTERVAL = 200  
-
-XP_TO_PAUSE = 100
-
-BACKGROUND = pygame.image.load('Assets/backgrounds/Background 1.png')
-
 class Player(pygame.sprite.Sprite):
     def __init__(self, vel, max_health, max_ammo):
         super().__init__()
@@ -88,15 +63,25 @@ class Enemy(pygame.sprite.Sprite):
             "walking_left_1": pygame.image.load('Assets/Enemies/Alien-walkingLeft1.png'),
             "walking_left_2": pygame.image.load('Assets/Enemies/Alien-walkingLeft2.png'),
             "walking_right_1": pygame.image.load('Assets/Enemies/Alien-walkingRight1.png'),
-            "walking_right_2": pygame.image.load('Assets/Enemies/Alien-walkingRight2.png')}
+            "walking_right_2": pygame.image.load('Assets/Enemies/Alien-walkingRight2.png')} #IMAGINE IMAGINE IMAGINE IMAGINE IMAGINE IMAGINE IMAGINE IMAGINE....
         
         self.current_image = self.images["still_forward"]
         self.rect = self.current_image.get_rect()
         self.rect.topleft = (x, y)
         self.size = size
         self.vel = vel
+        self.shoot_cooldown = random.randint(100, 2000)
+        self.last_shot = random.randint(0, 500) + pygame.time.get_ticks()
+        self.bullet_size = 10
+        self.bullet_vel = 0.5
+        self.bullet_img = None
+        self.spawn_time = pygame.time.get_ticks()
+        self.acc = 0.03
 
     def update(self, player_rect):
+        if self.spawn_time + 4000 <= pygame.time.get_ticks():
+            self.vel += self.acc
+            self.acc *= 0.98
         if self.rect.x < player_rect.centerx:
             self.rect.x += self.vel
             self.current_image = self.images["walking_right_1"]
@@ -106,23 +91,14 @@ class Enemy(pygame.sprite.Sprite):
 
         if self.rect.y < player_rect.centery:
             self.rect.y += self.vel
-            self.current_image = self.images["walking_down_1"]
+            self.current_image = self.images["walking_forward_1"]
         elif self.rect.y > player_rect.centery:
             self.rect.y -= self.vel
             self.current_image = self.images["walking_up_1"]
 
-pygame.init()
-
-SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Lost in Space")
-CLOCK = pygame.time.Clock()
-
-player = Player(3, 100, 50)
-bullets = []
-enemies = pygame.sprite.Group()
-enemies = []
-drops = []
-wave_length = 5
+        if self.last_shot + self.shoot_cooldown <= pygame.time.get_ticks():
+            self.last_shot = random.randint(0, 500) + pygame.time.get_ticks()
+            shoot(self, player_rect.centerx + 5 - random.randint(0, 10), player_rect.centery + 5 - random.randint(0, 10), False, self.bullet_size, self.bullet_vel, self.bullet_img)
 
 def handle_drops(enemy_rect):
     drop_type = random.choice(["ammo", "health", "xp"])
@@ -147,6 +123,54 @@ def pause_options():
     ammo_text = option_font.render("Press 2 for Ammo", True, WHITE)
     SCREEN.blit(ammo_text, (WIDTH // 2 - ammo_text.get_width() // 2, HEIGHT // 2 + 50))
 
+def shoot(me, x, y, is_player, size, vel, img):
+    direction = pygame.Vector2(x - me.rect.centerx, y - me.rect.centery).normalize()
+    bullet_velocity = direction * vel  
+    bullet_vel_x, bullet_vel_y = bullet_velocity.x, bullet_velocity.y
+    bullets.append({
+        "rect": pygame.Rect(me.rect.centerx - size // 2, me.rect.centery - size // 2, size, size),
+        "vel_x": bullet_vel_x,
+        "vel_y": bullet_vel_y,
+        "player": is_player})
+
+# Constants
+WIDTH, HEIGHT = 800, 800
+PLAYER_SIZE = 50
+ENEMY_SIZE = 50
+BULLET_SIZE = 10
+FPS = 60
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+WHITE = (255, 255, 255)
+BAR_WIDTH = 550
+BAR_HEIGHT = 25
+
+AMO_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/ammo crate.png'), (30, 30))
+HEALTH_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/health.png'), (30, 30))
+XP_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/xp.png'), (30, 30))
+
+DROP_DURATION = 2000  
+FLASH_THRESHOLD = 1500 
+FLASH_INTERVAL = 200  
+
+XP_TO_PAUSE = 100
+
+BACKGROUND = pygame.image.load('Assets/backgrounds/Background 1.png')
+
+pygame.init()
+
+SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Lost in Space")
+CLOCK = pygame.time.Clock()
+
+player = Player(3, 100, 50)
+bullets = []
+enemies = pygame.sprite.Group()
+enemies = []
+drops = []
+wave_length = 5
+
 # Game loop
 while True:
     for event in pygame.event.get():
@@ -156,13 +180,7 @@ while True:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if player.ammo > 0: 
                 mouse_x, mouse_y = pygame.mouse.get_pos()
-                direction = pygame.Vector2(mouse_x - player.rect.centerx, mouse_y - player.rect.centery).normalize()
-                bullet_velocity = direction * 2  
-                bullet_vel_x, bullet_vel_y = bullet_velocity.x, bullet_velocity.y
-                bullets.append({
-                    "rect": pygame.Rect(player.rect.centerx - BULLET_SIZE // 2, player.rect.centery - BULLET_SIZE // 2, BULLET_SIZE, BULLET_SIZE),
-                    "vel_x": bullet_vel_x,
-                    "vel_y": bullet_vel_y})
+                shoot(player, mouse_x, mouse_y, True, BULLET_SIZE, 2, None) 
                 player.ammo -= 1 
 
     for drop in drops.copy():
@@ -182,7 +200,6 @@ while True:
     player.update(keys)
 
     if player.xp >= XP_TO_PAUSE:
-        pygame.time.delay(1000) # = 1 second I think?
         paused = True
         while paused:
             for event in pygame.event.get():
@@ -271,18 +288,9 @@ while True:
                 drops.remove(drop)  
 
     for enemy in enemies:
-        if enemy.rect.x < player.rect.centerx:
-            enemy.rect.x += 1
-        elif enemy.rect.x > player.rect.centerx:
-            enemy.rect.x -= 1
-
-        if enemy.rect.y < player.rect.centery:
-            enemy.rect.y += 1
-        elif enemy.rect.y > player.rect.centery:
-            enemy.rect.y -= 1
-
+        enemy.update(player.rect)
         SCREEN.blit(enemy.current_image, enemy.rect)
-    
+
     bullets_to_remove = []
 
     for bullet in bullets:
@@ -291,13 +299,19 @@ while True:
 
         bullet_marked_for_removal = False
         for enemy in enemies.copy():
-            if bullet["rect"].colliderect(enemy):
+            if bullet["rect"].colliderect(enemy) and bullet["player"]:
                 bullets_to_remove.append(bullet)
                 bullet_marked_for_removal = True
                 enemies.remove(enemy)
                 drop = handle_drops(enemy.rect)
                 drops.append(drop)
                 break 
+
+        if bullet["rect"].colliderect(player) and not bullet["player"]:
+            bullets_to_remove.append(bullet)
+            bullet_marked_for_removal = True
+            # damage reduction here.
+            break 
 
         if bullet_marked_for_removal:
             break 
@@ -309,7 +323,8 @@ while True:
         bullets.remove(bullet)
 
     for bullet in bullets:
-        pygame.draw.circle(SCREEN, GREEN, (int(bullet["rect"].x), int(bullet["rect"].y)), BULLET_SIZE // 2)
+        color = RED if not bullet["player"] else GREEN
+        pygame.draw.circle(SCREEN, color, (int(bullet["rect"].x), int(bullet["rect"].y)), BULLET_SIZE // 2)
 
     SCREEN.blit(player.current_image, player.rect)
 
