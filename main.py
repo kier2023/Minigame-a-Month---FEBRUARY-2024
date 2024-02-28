@@ -2,8 +2,30 @@ import pygame
 import sys
 import random
 
+# Constants
+WIDTH, HEIGHT = 800, 800
+PLAYER_SIZE = 50
+ENEMY_SIZE = 50
+BULLET_SIZE = 10
+FPS = 60
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+BAR_WIDTH = 550
+BAR_HEIGHT = 25
+
+AMO_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/ammo crate.png'), (30, 30))
+HEALTH_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/health.png'), (30, 30))
+XP_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/xp.png'), (30, 30))
+
+DROP_DURATION = 2000  
+FLASH_THRESHOLD = 1500 
+FLASH_INTERVAL = 200  
+
+BACKGROUND = pygame.image.load('Assets/backgrounds/Background 1.png')
+
 class Player(pygame.sprite.Sprite):
-    def __init__(self, vel):
+    def __init__(self, vel, max_health, max_ammo):
         super().__init__()
         self.images = {
             "still_forward": pygame.image.load('Assets/Astronaut/Player_stillForward.png'),
@@ -23,6 +45,11 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.current_image.get_rect()
         self.rect.center = (WIDTH // 2, HEIGHT // 2)
         self.vel = vel
+        self.xp = 0
+        self.health = max_health
+        self.ammo = max_ammo
+        self.max_health = max_health
+        self.max_ammo = max_ammo
 
     def update(self, keys):
         if keys[pygame.K_w]:
@@ -40,7 +67,6 @@ class Player(pygame.sprite.Sprite):
         else:
             self.current_image = self.images["still_forward"]
 
-        # Boundary checks
         self.rect.x = max(0, min(self.rect.x, WIDTH - PLAYER_SIZE))
         self.rect.y = max(0, min(self.rect.y, HEIGHT - PLAYER_SIZE))
 
@@ -59,8 +85,8 @@ class Enemy(pygame.sprite.Sprite):
             "walking_left_1": pygame.image.load('Assets/Enemies/Alien-walkingLeft1.png'),
             "walking_left_2": pygame.image.load('Assets/Enemies/Alien-walkingLeft2.png'),
             "walking_right_1": pygame.image.load('Assets/Enemies/Alien-walkingRight1.png'),
-            "walking_right_2": pygame.image.load('Assets/Enemies/Alien-walkingRight2.png')
-        }
+            "walking_right_2": pygame.image.load('Assets/Enemies/Alien-walkingRight2.png')}
+        
         self.current_image = self.images["still_forward"]
         self.rect = self.current_image.get_rect()
         self.rect.topleft = (x, y)
@@ -84,24 +110,29 @@ class Enemy(pygame.sprite.Sprite):
 
 pygame.init()
 
-# Constants
-WIDTH, HEIGHT = 800, 800
-PLAYER_SIZE = 50
-ENEMY_SIZE = 50
-BULLET_SIZE = 10
-FPS = 60
-GREEN = (0, 255, 0)
-
-BACKGROUND = pygame.image.load('Assets/backgrounds/Background 1.png')
-
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Lost in Space")
 CLOCK = pygame.time.Clock()
 
-player = Player(3)
+def handle_drops(enemy_rect):
+    drop_type = random.choice(["ammo", "health", "xp"])
+    drop_rect = pygame.Rect(enemy_rect.centerx, enemy_rect.centery, 30, 30)
+
+    if drop_type == "ammo":
+        drop_img = AMO_IMG
+    elif drop_type == "health":
+        drop_img = HEALTH_IMG
+    else:
+        drop_img = XP_IMG
+
+    drop_timer = DROP_DURATION 
+    return {"type": drop_type, "rect": drop_rect, "img": drop_img, "timer": drop_timer}
+
+player = Player(3, 100, 50)
 bullets = []
 enemies = pygame.sprite.Group()
 enemies = []
+drops = []
 wave_length = 5
 
 # Game loop
@@ -111,20 +142,53 @@ while True:
             pygame.quit()
             sys.exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            if player.ammo > 0: 
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                direction = pygame.Vector2(mouse_x - player.rect.centerx, mouse_y - player.rect.centery).normalize()
+                bullet_velocity = direction * 2  
+                bullet_vel_x, bullet_vel_y = bullet_velocity.x, bullet_velocity.y
+                bullets.append({
+                    "rect": pygame.Rect(player.rect.centerx - BULLET_SIZE // 2, player.rect.centery - BULLET_SIZE // 2, BULLET_SIZE, BULLET_SIZE),
+                    "vel_x": bullet_vel_x,
+                    "vel_y": bullet_vel_y})
+                player.ammo -= 1 
 
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            direction = pygame.Vector2(mouse_x - player.rect.centerx, mouse_y - player.rect.centery).normalize()
-            bullet_velocity = direction * 2  
-            bullet_vel_x, bullet_vel_y = bullet_velocity.x, bullet_velocity.y
-            bullets.append({
-                "rect": pygame.Rect(player.rect.centerx - BULLET_SIZE // 2, player.rect.centery - BULLET_SIZE // 2, BULLET_SIZE, BULLET_SIZE),
-                "vel_x": bullet_vel_x,
-                "vel_y": bullet_vel_y})
+    for drop in drops.copy():
+        drop["timer"] -= CLOCK.get_rawtime()  
+
+        if drop["timer"] < FLASH_THRESHOLD:
+
+            if drop["timer"] % (2 * FLASH_INTERVAL) < FLASH_INTERVAL:
+                SCREEN.blit(drop["img"], drop["rect"])
+
+        if drop["timer"] <= 0:
+            drops.remove(drop) 
+        else:
+            SCREEN.blit(drop["img"], drop["rect"]) 
 
     keys = pygame.key.get_pressed()
     player.update(keys)
 
     SCREEN.blit(BACKGROUND, (0, 0))
+
+    health_bar_width = int((player.health / player.max_health) * BAR_WIDTH)
+    pygame.draw.rect(SCREEN, (150, 0, 0), (WIDTH // 2 - BAR_WIDTH // 2, 10, health_bar_width, BAR_HEIGHT))
+    pygame.draw.rect(SCREEN, RED, (WIDTH // 2 - BAR_WIDTH // 2, 10, BAR_WIDTH, BAR_HEIGHT), 2)
+    SCREEN.blit(HEALTH_IMG, (WIDTH // 2 + BAR_WIDTH // 2 + 10, 10))
+
+
+    xp_bar_width = int((player.xp / 100) * BAR_WIDTH)  
+    xp_bar_rect = pygame.Rect(WIDTH // 2 - BAR_WIDTH // 2, 40, xp_bar_width, BAR_HEIGHT)
+    pygame.draw.rect(SCREEN, (0, 150, 0), xp_bar_rect)
+    pygame.draw.rect(SCREEN, GREEN, (WIDTH // 2 - BAR_WIDTH // 2, 40, BAR_WIDTH, BAR_HEIGHT), 2)
+    pygame.draw.line(SCREEN, GREEN, (xp_bar_rect.right, 40), (xp_bar_rect.right, 40 + BAR_HEIGHT), 2)
+    SCREEN.blit(XP_IMG, (WIDTH // 2 + BAR_WIDTH // 2 + 10, 40))
+
+
+    ammo_bar_width = int((player.ammo / player.max_ammo) * BAR_WIDTH)
+    pygame.draw.rect(SCREEN, (0, 0, 150), (WIDTH // 2 - BAR_WIDTH // 2, 70, ammo_bar_width, BAR_HEIGHT))
+    pygame.draw.rect(SCREEN, BLUE, (WIDTH // 2 - BAR_WIDTH // 2, 70, BAR_WIDTH, BAR_HEIGHT), 2)
+    SCREEN.blit(AMO_IMG, (WIDTH // 2 + BAR_WIDTH // 2 + 10, 70))
 
     if not enemies:
         for _ in range(wave_length):
@@ -160,6 +224,18 @@ while True:
 
             enemies.append(new_enemy)
 
+    for drop in drops.copy():
+        if player.rect.colliderect(drop["rect"]):
+            if drop["type"] == "ammo" and player.ammo < player.max_ammo:
+                player.ammo += 1
+                drops.remove(drop)  
+            elif drop["type"] == "health" and player.health < player.max_health:
+                player.health += 10  
+                drops.remove(drop) 
+            elif drop["type"] == "xp":
+                player.xp += 10  
+                drops.remove(drop)  
+
     for enemy in enemies:
         if enemy.rect.x < player.rect.centerx:
             enemy.rect.x += 1
@@ -185,10 +261,15 @@ while True:
                 bullets_to_remove.append(bullet)
                 bullet_marked_for_removal = True
                 enemies.remove(enemy)
+                drop = handle_drops(enemy.rect)
+                drops.append(drop)
                 break 
 
         if bullet_marked_for_removal:
             break 
+
+    for drop in drops:
+        SCREEN.blit(drop["img"], drop["rect"])
 
     for bullet in bullets_to_remove:
         bullets.remove(bullet)
