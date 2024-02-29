@@ -130,12 +130,19 @@ def handle_drops(enemy_rect):
     return {"type": drop_type, "rect": drop_rect, "img": drop_img, "timer": drop_timer}
 
 def pause_options():
-    option_font = pygame.font.Font('Fonts/SPACEMAN.TTF', 30) # Might be to big???????????????????
+    option_font = pygame.font.Font('Fonts/SpaceMono-Regular.ttf', 30) # Might be to big???????????????????
     
     health_text = option_font.render("Press 1 for health", True, WHITE)
-    SCREEN.blit(health_text, (WIDTH // 2 - health_text.get_width() // 2, HEIGHT // 2 - 50))
-
     ammo_text = option_font.render("Press 2 for Ammo", True, WHITE)
+    
+    curved_box_rect = pygame.Rect(
+        WIDTH // 2 - health_text.get_width() // 2 - CURVED_BOX_PADDING,
+        HEIGHT // 2 - health_text.get_height() // 2 - CURVED_BOX_PADDING,
+        max(health_text.get_width(), ammo_text.get_height()) + 2 * CURVED_BOX_PADDING,
+        health_text.get_height() + ammo_text.get_height() + 3 * CURVED_BOX_PADDING)
+    
+    pygame.draw.rect(SCREEN, CURVED_BOX_COLOR, curved_box_rect, border_radius=CURVED_BOX_RADIUS)
+    SCREEN.blit(health_text, (WIDTH // 2 - health_text.get_width() // 2, HEIGHT // 2 - 50 + CURVED_BOX_PADDING))
     SCREEN.blit(ammo_text, (WIDTH // 2 - ammo_text.get_width() // 2, HEIGHT // 2 + 50))
 
 def shoot(me, x, y, is_player, size, vel, img):
@@ -148,6 +155,8 @@ def shoot(me, x, y, is_player, size, vel, img):
         "vel_y": bullet_vel_y,
         "player": is_player,
         "img": RED_BULLET_IMG if is_player else GREEN_BULLET_IMG})
+
+    BULLET_SOUND.play()
     
 # Constants
 WIDTH, HEIGHT = 800, 800
@@ -167,6 +176,8 @@ CURVED_BOX_RADIUS = 20
 CURVED_BOX_PADDING = 20
 
 pygame.font.init()
+pygame.mixer.pre_init(44100, -16, 2, 512)
+pygame.mixer.init()
 
 RESTART_FONT = pygame.font.Font('Fonts/SpaceMono-Regular.ttf', 40)
 RESTART_TEXT = RESTART_FONT.render("GAME OVER! Press R to restart", True, WHITE)
@@ -189,6 +200,10 @@ BACKGROUND2 = pygame.image.load('Assets/backgrounds/Background 2.png')
 RED_BULLET_IMG = pygame.transform.scale(pygame.image.load('Assets/lasers/1.png'), (30, 30))
 GREEN_BULLET_IMG = pygame.transform.scale(pygame.image.load('Assets/lasers/2.png'), (30, 30))
 
+BULLET_SOUND = pygame.mixer.Sound('Music/efx/space-laser-38082.wav')
+BULLET_SOUND.set_volume(0.2)#???
+pygame.mixer.music.load('Music/bg-music/arthur-vyncke-a-few-jumps-away.wav')
+
 pygame.init()
 
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -207,6 +222,8 @@ player_score = 0
 # Game loop
 async def main_loop():
     global wave_length, speed_boost_start, player_score
+    pygame.mixer.music.play(-1) 
+    pygame.mixer.music.set_volume(0.1)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -367,7 +384,7 @@ async def main_loop():
                 break
 
             if bullet_marked_for_removal:
-                break
+                continue
 
         # Remove enemies after the loop
         for enemy in enemies_to_remove:
