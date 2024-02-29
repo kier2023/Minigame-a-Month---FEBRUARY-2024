@@ -1,5 +1,5 @@
 ##############################################
-#  BUG ISSUES TO BE LINKED WITH THIS BRANCH. # 
+#  BUG FIXES TO BE LINKED WITH THIS BRANCH. # 
 ##############################################
 
 import pygame
@@ -176,7 +176,7 @@ HEALTH_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/health.png
 XP_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/xp.png'), (30, 30))
 SPEED_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/speed.png'), (30, 30))
 
-DROP_DURATION = 2000  
+DROP_DURATION = 5000  
 FLASH_THRESHOLD = 1500 
 FLASH_INTERVAL = 200  
 
@@ -194,7 +194,7 @@ SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Lost in Space")
 CLOCK = pygame.time.Clock()
 
-player = Player(3, 100, 50)
+player = Player(5, 100, 50)
 bullets = []
 enemies = pygame.sprite.Group()
 enemies = []
