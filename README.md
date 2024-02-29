@@ -54,6 +54,10 @@ Lost in Space is a minigame where the player controls an astronaut, and needs to
 
 Contributions are welcome! If you find any issues or have suggestions for improvement, feel free to open an issue or create a pull request.
 
+## Credits:
+- Bullet sounds: [Pixabay](pixabay.com)
+- Background Music: [A few jumps away - Arthur Vyncke](https://soundcloud.com/arthurvost/a-few-jumps-away)
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
