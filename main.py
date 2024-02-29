@@ -41,15 +41,15 @@ class Player(pygame.sprite.Sprite):
             self.rect.y -= self.vel
             self.current_image = self.images["walking_up_1"]
 
-        elif move_down and not move_up:
+        if move_down and not move_up:
             self.rect.y += self.vel
             self.current_image = self.images["walking_forward_1"]   
 
-        elif move_left and not move_right:
+        if move_left and not move_right:
             self.rect.x -= self.vel
             self.current_image = self.images["walking_left_1"]
 
-        elif move_right and not move_left:
+        if move_right and not move_left:
             self.rect.x += self.vel
             self.current_image = self.images["walking_right_1"]
 
@@ -58,7 +58,10 @@ class Player(pygame.sprite.Sprite):
         
         for enemy in enemies:
             if self.rect.colliderect(enemy.rect):
-                self.health -= 0.5 
+                self.health -= 20
+                drop = handle_drops(enemy.rect)
+                drops.append(drop)
+                enemy.kill()
 
         self.rect.x = max(0, min(self.rect.x, WIDTH - PLAYER_SIZE))
         self.rect.y = max(0, min(self.rect.y, HEIGHT - PLAYER_SIZE))
@@ -213,7 +216,7 @@ SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Lost in Space")
 CLOCK = pygame.time.Clock()
 
-player = Player(5, 100, 50)
+player = Player(3, 100, 50)
 bullets = []
 enemies = pygame.sprite.Group()
 drops = []
