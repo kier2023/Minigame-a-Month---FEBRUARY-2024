@@ -84,7 +84,7 @@ class Enemy(pygame.sprite.Sprite):
         self.shoot_cooldown = random.randint(1000, 5000)
         self.last_shot = random.randint(0, 500) + pygame.time.get_ticks()
         self.bullet_size = 10
-        self.bullet_vel = 0.2
+        self.bullet_vel = 0.5
         self.bullet_img = None
         self.spawn_time = pygame.time.get_ticks()
         self.acc = 0.03
@@ -249,6 +249,7 @@ async def main_loop():
                 
                 pause_options()
                 pygame.display.flip()
+                await asyncio.sleep(0)
                 CLOCK.tick(FPS)
         
         if player.health <= 0:
@@ -272,6 +273,7 @@ async def main_loop():
                 drops.clear()
             
             pygame.display.flip()
+            await asyncio.sleep(0)
             CLOCK.tick(FPS)
             continue # Fuck it.
 
@@ -403,6 +405,7 @@ async def main_loop():
             wave_length += 2
 
         pygame.display.flip()
+        await asyncio.sleep(0)
         CLOCK.tick(FPS)
 
 if __name__ == "__main__":
