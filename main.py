@@ -1,7 +1,3 @@
-##############################################
-#  BUG FIXES TO BE LINKED WITH THIS BRANCH. # 
-##############################################
-
 import pygame
 import sys
 import random
@@ -186,8 +182,7 @@ pygame.mixer.init()
 RESTART_FONT = pygame.font.Font('Fonts/SpaceMono-Regular.ttf', 40)
 RESTART_TEXT = RESTART_FONT.render("GAME OVER! Press R to restart", True, WHITE)
 
-AMO_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/ammo crate.png'), (30, 30))
-AMMO_CRATE_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/Ammo_crate_img.png'), (60, 60))
+AMO_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/ammo crate.png'), (40, 40))
 HEALTH_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/health.png'), (30, 30))
 XP_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/xp.png'), (30, 30))
 SPEED_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/speed.png'), (30, 30))
@@ -205,7 +200,7 @@ RED_BULLET_IMG = pygame.transform.scale(pygame.image.load('Assets/lasers/1.png')
 GREEN_BULLET_IMG = pygame.transform.scale(pygame.image.load('Assets/lasers/2.png'), (30, 30))
 
 BULLET_SOUND = pygame.mixer.Sound('Music/efx/space-laser-38082.wav')
-BULLET_SOUND.set_volume(0.2)#???
+BULLET_SOUND.set_volume(0.2)
 pygame.mixer.music.load('Music/bg-music/arthur-vyncke-a-few-jumps-away.wav')
 
 pygame.init()
@@ -227,7 +222,7 @@ player_score = 0
 async def main_loop():
     global wave_length, speed_boost_start, player_score
     pygame.mixer.music.play(-1) 
-    pygame.mixer.music.set_volume(0.1)
+    pygame.mixer.music.set_volume(0.05)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
