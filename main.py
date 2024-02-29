@@ -81,7 +81,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.topleft = (x, y)
         self.size = size
         self.vel = vel
-        self.shoot_cooldown = random.randint(100, 2000)
+        self.shoot_cooldown = random.randint(1000, 5000)
         self.last_shot = random.randint(0, 500) + pygame.time.get_ticks()
         self.bullet_size = 10
         self.bullet_vel = 0.2
@@ -126,7 +126,7 @@ def handle_drops(enemy_rect):
     return {"type": drop_type, "rect": drop_rect, "img": drop_img, "timer": drop_timer}
 
 def pause_options():
-    option_font = pygame.font.Font('Fonts/SPACE.ttf', 30) # Might be to big???????????????????
+    option_font = pygame.font.Font('Fonts/SPACEMAN.TTF', 30) # Might be to big???????????????????
     
     health_text = option_font.render("Press 1 for health", True, WHITE)
     SCREEN.blit(health_text, (WIDTH // 2 - health_text.get_width() // 2, HEIGHT // 2 - 50))
@@ -142,7 +142,8 @@ def shoot(me, x, y, is_player, size, vel, img):
         "rect": pygame.Rect(me.rect.centerx - size // 2, me.rect.centery - size // 2, size, size),
         "vel_x": bullet_vel_x,
         "vel_y": bullet_vel_y,
-        "player": is_player})
+        "player": is_player,
+        "img": RED_BULLET_IMG if is_player else GREEN_BULLET_IMG})
 
 # Constants
 WIDTH, HEIGHT = 800, 800
@@ -157,10 +158,13 @@ WHITE = (255, 255, 255)
 BAR_WIDTH = 550
 BAR_HEIGHT = 25
 WAVE_DELAY = 5000
+CURVED_BOX_COLOR = (59, 24, 29)
+CURVED_BOX_RADIUS = 20
+CURVED_BOX_PADDING = 20
 
 pygame.font.init()
 
-RESTART_FONT = pygame.font.Font('Fonts/SPACE.ttf', 30)
+RESTART_FONT = pygame.font.Font('Fonts/SpaceMono-Regular.ttf', 40)
 RESTART_TEXT = RESTART_FONT.render("GAME OVER! Press R to restart", True, WHITE)
 
 AMO_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/ammo crate.png'), (30, 30))
@@ -176,6 +180,9 @@ XP_TO_PAUSE = 100
 
 BACKGROUND = pygame.image.load('Assets/backgrounds/Background 1.png')
 BACKGROUND2 = pygame.image.load('Assets/backgrounds/Background 2.png')
+
+RED_BULLET_IMG = pygame.transform.scale(pygame.image.load('Assets/lasers/1.png'), (30, 30))
+GREEN_BULLET_IMG = pygame.transform.scale(pygame.image.load('Assets/lasers/2.png'), (30, 30))
 
 pygame.init()
 
@@ -243,7 +250,14 @@ while True:
             CLOCK.tick(FPS)
     
     if player.health <= 0:
-        SCREEN.blit(RESTART_TEXT, (WIDTH // 2 - RESTART_TEXT.get_width() // 2, HEIGHT // 2))
+        curved_box_rect = pygame.Rect(
+            WIDTH // 2 - RESTART_TEXT.get_width() // 2 - CURVED_BOX_PADDING,
+            HEIGHT // 2 - RESTART_TEXT.get_height() // 2 - CURVED_BOX_PADDING,
+            RESTART_TEXT.get_width() + 2 * CURVED_BOX_PADDING,
+            RESTART_TEXT.get_height() + 2 * CURVED_BOX_PADDING)
+
+        pygame.draw.rect(SCREEN, CURVED_BOX_COLOR, curved_box_rect, border_radius=CURVED_BOX_RADIUS)
+        SCREEN.blit(RESTART_TEXT, (WIDTH // 2 - RESTART_TEXT.get_width() // 2, HEIGHT // 2 - RESTART_TEXT.get_height() // 2))
         pygame.display.flip()
 
         keys = pygame.key.get_pressed()
@@ -355,8 +369,7 @@ while True:
         bullets.remove(bullet)
 
     for bullet in bullets:
-        color = RED if not bullet["player"] else GREEN
-        pygame.draw.circle(SCREEN, color, (int(bullet["rect"].x), int(bullet["rect"].y)), BULLET_SIZE // 2)
+        SCREEN.blit(bullet["img"], (int(bullet["rect"].x), int(bullet["rect"].y)))
 
     SCREEN.blit(BACKGROUND2, (0, 0))
 
