@@ -263,7 +263,7 @@ async def main_loop():
         keys = pygame.key.get_pressed()
         player.update(keys)
 
-        for drop in drops.copy():
+        for drop in drops:
             drop["timer"] -= CLOCK.get_rawtime()  
 
             if drop["timer"] < FLASH_THRESHOLD:
@@ -361,7 +361,7 @@ async def main_loop():
                 
                 enemies.add(new_enemy)
 
-        for drop in drops.copy():
+        for drop in drops:
             if player.rect.colliderect(drop["rect"]):
                 if drop["type"] == "ammo" and player.ammo < player.max_ammo:
                     if player.ammo + 5 > player.max_ammo:
@@ -396,7 +396,7 @@ async def main_loop():
             bullet["rect"].y += bullet["rect"].height * bullet["vel_y"]
 
             bullet_marked_for_removal = False
-            for enemy in enemies.copy():
+            for enemy in enemies:
                 if bullet["rect"].colliderect(enemy.rect) and bullet["player"]:
                     bullets_to_remove.append(bullet)
                     bullet_marked_for_removal = True
@@ -454,7 +454,6 @@ async def main_loop():
         SCREEN.blit(score_text, (WIDTH - 250, HEIGHT - 50))
         SCREEN.blit(player.current_image, player.rect)
 
-        print(wave_length, spawn_count)
         if not enemies and spawn_count == 1:
             wave_length += 1
             spawn_count = wave_length
