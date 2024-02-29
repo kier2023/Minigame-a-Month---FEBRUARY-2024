@@ -311,6 +311,7 @@ async def main_loop():
                 player.health = player.max_health
                 player.ammo = player.max_ammo
                 player.xp = 0
+                wave_length = 5
                 bullets.clear()
                 enemies.empty()
                 drops.clear()
