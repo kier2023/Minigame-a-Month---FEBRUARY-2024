@@ -2,6 +2,7 @@ import pygame
 import sys
 import random
 import asyncio
+import math
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, vel, max_health, max_ammo):
@@ -37,21 +38,34 @@ class Player(pygame.sprite.Sprite):
         move_left = keys[pygame.K_a]
         move_right = keys[pygame.K_d]
 
+        # Boople said to use polar co-ordinates and im going to be systemically sick, and I am dumb.
         if move_up and not move_down:
-            self.rect.y -= self.vel
             self.current_image = self.images["walking_up_1"]
+            if move_left or move_right:
+                self.rect.y -= math.sqrt(math.pow(self.vel,2) // 2)
+            else:
+                self.rect.y -= self.vel
 
         if move_down and not move_up:
-            self.rect.y += self.vel
             self.current_image = self.images["walking_forward_1"]   
+            if move_left or move_right:
+                self.rect.y += math.sqrt(math.pow(self.vel,2) // 2)
+            else:
+                self.rect.y += self.vel
 
         if move_left and not move_right:
-            self.rect.x -= self.vel
             self.current_image = self.images["walking_left_1"]
+            if move_up or move_down:
+                self.rect.x -= math.sqrt(math.pow(self.vel,2) // 2)
+            else:
+                self.rect.x -= self.vel
 
         if move_right and not move_left:
-            self.rect.x += self.vel
             self.current_image = self.images["walking_right_1"]
+            if move_up or move_down:
+                self.rect.x += math.sqrt(math.pow(self.vel,2) // 2)
+            else:
+                self.rect.x += self.vel
 
         if not any([move_up, move_down, move_left, move_right]):
             self.current_image = self.images["still_forward"]
@@ -224,10 +238,11 @@ wave_length = 5
 last_wave = -10000
 speed_boost_start = 0
 player_score = 0
+spawn_count = wave_length
 
 # Game loop
 async def main_loop():
-    global wave_length, speed_boost_start, player_score
+    global wave_length, speed_boost_start, player_score, spawn_count
 
     await start_screen()
 
@@ -297,7 +312,7 @@ async def main_loop():
                             player.health = player.max_health
                             player.ammo = player.max_ammo
                             player.xp = 0
-                            wave_length = 5
+                            spawn_count = wave_length = 5
                             enemies.empty()
                             bullets.clear()
                             drops.clear()
@@ -311,8 +326,9 @@ async def main_loop():
 
         SCREEN.blit(BACKGROUND, (0, 0))
 
-        if not enemies.sprites():
-            for _ in range(wave_length):
+        if spawn_count > 1:
+            while spawn_count > 1 and random.randint(0, 100) > 85:
+                spawn_count -= 1
                 side = random.choice(['left', 'right', 'top', 'bottom'])
                 if side == 'left':
                     enemy_x = -ENEMY_SIZE
@@ -360,7 +376,7 @@ async def main_loop():
                         player.health += 10  
                     drops.remove(drop) 
                 elif drop["type"] == "speed":
-                    player.vel = player.original_vel + 3
+                    player.vel = player.original_vel + 2
                     speed_boost_start = pygame.time.get_ticks()
                     drops.remove(drop)
                     
@@ -438,8 +454,10 @@ async def main_loop():
         SCREEN.blit(score_text, (WIDTH - 250, HEIGHT - 50))
         SCREEN.blit(player.current_image, player.rect)
 
-        if not enemies:
+        print(wave_length, spawn_count)
+        if not enemies and spawn_count == 1:
             wave_length += 1
+            spawn_count = wave_length
 
         pygame.display.flip()
         await asyncio.sleep(0)
