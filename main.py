@@ -216,7 +216,7 @@ SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Lost in Space")
 CLOCK = pygame.time.Clock()
 
-player = Player(3, 100, 50)
+player = Player(5, 100, 50)
 bullets = []
 enemies = pygame.sprite.Group()
 drops = []
