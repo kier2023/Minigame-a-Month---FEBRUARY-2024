@@ -1,3 +1,7 @@
+##############################################
+#  BUG ISSUES TO BE LINKED WITH THIS BRANCH. # 
+##############################################
+
 import pygame
 import sys
 import random
