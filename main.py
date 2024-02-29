@@ -295,8 +295,8 @@ async def main_loop():
                             player.ammo = player.max_ammo
                             player.xp = 0
                             wave_length = 5
-                            bullets.clear()
                             enemies.empty()
+                            bullets.clear()
                             drops.clear()
                             paused = False # Oh.... I see my issue, I think....? 
                             break # Maybe??
