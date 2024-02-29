@@ -59,6 +59,10 @@ class Player(pygame.sprite.Sprite):
 
         if not any([move_up, move_down, move_left, move_right]):
             self.current_image = self.images["still_forward"]
+        
+        for enemy in enemies:
+            if self.rect.colliderect(enemy.rect):
+                self.health -= 0.5 
 
         self.rect.x = max(0, min(self.rect.x, WIDTH - PLAYER_SIZE))
         self.rect.y = max(0, min(self.rect.y, HEIGHT - PLAYER_SIZE))
@@ -290,7 +294,7 @@ async def main_loop():
                 player.ammo = player.max_ammo
                 player.xp = 0
                 bullets.clear()
-                enemies.clear()
+                enemies.empty()
                 drops.clear()
             
             pygame.display.flip()
@@ -343,7 +347,10 @@ async def main_loop():
                         player.ammo += 5
                     drops.remove(drop)
                 elif drop["type"] == "health" and player.health < player.max_health:
-                    player.health += 10  
+                    if player.health + 10 > player.max_health:
+                        player.health = player.max_health
+                    else:
+                        player.health += 10  
                     drops.remove(drop) 
                 elif drop["type"] == "speed":
                     player.vel = player.original_vel + 3
