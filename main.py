@@ -157,7 +157,25 @@ def shoot(me, x, y, is_player, size, vel, img):
         "img": RED_BULLET_IMG if is_player else GREEN_BULLET_IMG})
 
     BULLET_SOUND.play()
-    
+
+async def start_screen():
+    font = pygame.font.Font('Fonts/SpaceMono-Regular.ttf', 50)
+    text = font.render("Click to begin!", True, WHITE)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                return
+        
+        SCREEN.blit(BACKGROUND3, (0, 0))
+        SCREEN.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
+        pygame.display.flip()
+        await asyncio.sleep(0)
+        CLOCK.tick(FPS)
+
 # Constants
 WIDTH, HEIGHT = 800, 800
 PLAYER_SIZE = 50
@@ -182,7 +200,7 @@ pygame.mixer.init()
 RESTART_FONT = pygame.font.Font('Fonts/SpaceMono-Regular.ttf', 40)
 RESTART_TEXT = RESTART_FONT.render("GAME OVER! Press R to restart", True, WHITE)
 
-AMO_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/ammo crate.png'), (40, 40))
+AMO_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/Ammo crate.png'), (40, 40))
 HEALTH_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/health.png'), (30, 30))
 XP_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/xp.png'), (30, 30))
 SPEED_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/speed.png'), (30, 30))
@@ -195,6 +213,7 @@ XP_TO_PAUSE = 100
 
 BACKGROUND = pygame.image.load('Assets/backgrounds/Background 1.png')
 BACKGROUND2 = pygame.image.load('Assets/backgrounds/Background 2.png')
+BACKGROUND3 = pygame.image.load('Assets/backgrounds/bg.png')
 
 RED_BULLET_IMG = pygame.transform.scale(pygame.image.load('Assets/lasers/1.png'), (30, 30))
 GREEN_BULLET_IMG = pygame.transform.scale(pygame.image.load('Assets/lasers/2.png'), (30, 30))
@@ -221,8 +240,12 @@ player_score = 0
 # Game loop
 async def main_loop():
     global wave_length, speed_boost_start, player_score
+
+    await start_screen()
+
     pygame.mixer.music.play(-1) 
     pygame.mixer.music.set_volume(0.05)
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -242,7 +265,7 @@ async def main_loop():
 
             if drop["timer"] < FLASH_THRESHOLD:
 
-                if drop["timer"] % (2 * FLASH_INTERVAL) < FLASH_INTERVAL: # Flash interval doesn't even work...
+                if drop["timer"] % (2 * FLASH_INTERVAL) < FLASH_INTERVAL:
                     SCREEN.blit(drop["img"], drop["rect"])
 
             if drop["timer"] <= 0:
@@ -295,7 +318,7 @@ async def main_loop():
             pygame.display.flip()
             await asyncio.sleep(0)
             CLOCK.tick(FPS)
-            continue # Fuck it.
+            continue 
 
         SCREEN.blit(BACKGROUND, (0, 0))
 
@@ -372,7 +395,7 @@ async def main_loop():
                 if bullet["rect"].colliderect(enemy.rect) and bullet["player"]:
                     bullets_to_remove.append(bullet)
                     bullet_marked_for_removal = True
-                    enemies_to_remove.append(enemy)  # Add enemy to the removal list
+                    enemies_to_remove.append(enemy)
                     player.xp += 5
                     drop = handle_drops(enemy.rect)
                     drops.append(drop)
@@ -388,7 +411,6 @@ async def main_loop():
             if bullet_marked_for_removal:
                 continue
 
-        # Remove enemies after the loop
         for enemy in enemies_to_remove:
             enemies.remove(enemy)
 
