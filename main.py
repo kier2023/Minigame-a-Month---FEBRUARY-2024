@@ -148,7 +148,7 @@ def shoot(me, x, y, is_player, size, vel, img):
         "vel_y": bullet_vel_y,
         "player": is_player,
         "img": RED_BULLET_IMG if is_player else GREEN_BULLET_IMG})
-
+    
 # Constants
 WIDTH, HEIGHT = 800, 800
 PLAYER_SIZE = 50
@@ -172,6 +172,7 @@ RESTART_FONT = pygame.font.Font('Fonts/SpaceMono-Regular.ttf', 40)
 RESTART_TEXT = RESTART_FONT.render("GAME OVER! Press R to restart", True, WHITE)
 
 AMO_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/ammo crate.png'), (30, 30))
+AMMO_CRATE_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/Ammo_crate_img.png'), (60, 60))
 HEALTH_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/health.png'), (30, 30))
 XP_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/xp.png'), (30, 30))
 SPEED_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/speed.png'), (30, 30))
@@ -197,7 +198,6 @@ CLOCK = pygame.time.Clock()
 player = Player(5, 100, 50)
 bullets = []
 enemies = pygame.sprite.Group()
-enemies = []
 drops = []
 wave_length = 5
 last_wave = -10000
@@ -283,7 +283,7 @@ async def main_loop():
 
         SCREEN.blit(BACKGROUND, (0, 0))
 
-        if not enemies:
+        if not enemies.sprites():
             for _ in range(wave_length):
                 side = random.choice(['left', 'right', 'top', 'bottom'])
                 if side == 'left':
@@ -315,13 +315,16 @@ async def main_loop():
                         new_enemy.rect.x = random.randint(0, WIDTH - ENEMY_SIZE)
                         new_enemy.rect.y = HEIGHT - ENEMY_SIZE
                 
-                enemies.append(new_enemy)
+                enemies.add(new_enemy)
 
         for drop in drops.copy():
             if player.rect.colliderect(drop["rect"]):
                 if drop["type"] == "ammo" and player.ammo < player.max_ammo:
-                    player.ammo += 1
-                    drops.remove(drop)  
+                    if player.ammo + 5 > player.max_ammo:
+                        player.ammo = player.max_ammo 
+                    else:
+                        player.ammo += 5
+                    drops.remove(drop)
                 elif drop["type"] == "health" and player.health < player.max_health:
                     player.health += 10  
                     drops.remove(drop) 
