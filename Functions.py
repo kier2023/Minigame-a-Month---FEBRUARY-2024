@@ -17,7 +17,9 @@ def handle_drops(enemy_rect):
     return {"type": drop_type, "rect": drop_rect, "img": drop_img, "timer": drop_timer}
 
 def pause_options():    
-    SCREEN.blit(OPTIONS, (0, 0)) # IMAGINE THIS BEING IN ITS OWN FUNCTION (LOL!!!!!!)
+    #SCREEN.blit(OPTIONS, (0, 0)) # IMAGINE THIS BEING IN ITS OWN FUNCTION (LOL!!!!!!)
+    SCREEN.blit(AMMO_PACK, AMMO_PACK_RECT.topleft)
+    SCREEN.blit(HEALTH_PACK, HEALTH_PACK_RECT.topleft)
 
 def shoot(me, x, y, is_player, size, vel, img, bullets):
     direction = pygame.Vector2(x - me.rect.centerx, y - me.rect.centery).normalize()

@@ -97,14 +97,14 @@ async def main_loop():
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()
-                        sys.exit()
-                    elif event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_1:
-                            player.health = player.max_health
+                        sys.exit()                  
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        if AMMO_PACK_RECT.collidepoint(event.pos):
+                            player.ammo = player.max_ammo
                             player.xp = 0
                             paused = False
-                        elif event.key == pygame.K_2:
-                            player.ammo = player.max_ammo
+                        elif HEALTH_PACK_RECT.collidepoint(event.pos):
+                            player.health = player.max_health
                             player.xp = 0
                             paused = False
                 

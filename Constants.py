@@ -30,6 +30,11 @@ HEALTH_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/health.png
 XP_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/xp.png'), (30, 30))
 SPEED_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/speed.png'), (30, 30))
 
+AMMO_PACK = pygame.transform.scale(pygame.image.load('Assets/bonuses/Ammo Pack.png'), (200, 200))
+AMMO_PACK_RECT = AMMO_PACK.get_rect(center=(WIDTH // 2 + 100, HEIGHT // 2 ))
+HEALTH_PACK = pygame.transform.scale(pygame.image.load('Assets/bonuses/Health Pack.png'), (200, 200))
+HEALTH_PACK_RECT = HEALTH_PACK.get_rect(center=(WIDTH // 2 - 100, HEIGHT // 2))
+
 DROP_DURATION = 5000  
 FLASH_THRESHOLD = 1500 
 FLASH_INTERVAL = 200  
