@@ -8,6 +8,11 @@ from Functions import *
 from Enemy import *
 from Player import *
 
+'''
+ Function to deplay the start screen before the main game loop begins. 
+ Game loop starts when the user clicks anywhere on the screen.
+ Player can also quit/exit the game by clicking the close applicatioin button.
+'''
 async def start_screen():
     while True:
         for event in pygame.event.get():
@@ -32,7 +37,8 @@ speed_boost_start = 0
 player_score = 0
 spawn_count = wave_length
 
-# Game loop
+# Main game loop is an ansycrhronus functions as I used pygbag to generate a web.zip file. 
+
 async def main_loop():
     global wave_length, speed_boost_start, player_score, spawn_count
 
@@ -49,18 +55,28 @@ async def main_loop():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if player.ammo > 0:
                     mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                    '''
+                    Calls the shoot function to create a bullet. 
+                    Doing so decrements the players overall ammo by 1.
+                    Shoot direction is defined by where the mouse was clicked on the screen.
+                    '''
                     shoot(player, mouse_x, mouse_y, True, BULLET_SIZE, 2, None, bullets)
                     player.ammo -= 1
 
         keys = pygame.key.get_pressed()
         player.update(keys)
 
+        '''
+        Updates timers for enemy drops and applies a flash effect for the drops before the timer expiers.
+        The flash effect is not working, and is not important enough to fix right now. 
+        '''
         for drop in drops:
             drop["timer"] -= CLOCK.get_rawtime()  
 
             if drop["timer"] < FLASH_THRESHOLD:
 
-                if drop["timer"] % (2 * FLASH_INTERVAL) < FLASH_INTERVAL: # Doesn't work so don't know why this is here....
+                if drop["timer"] % (2 * FLASH_INTERVAL) < FLASH_INTERVAL:
                     SCREEN.blit(drop["img"], drop["rect"])
 
             if drop["timer"] <= 0:
@@ -68,6 +84,13 @@ async def main_loop():
             else:
                 SCREEN.blit(drop["img"], drop["rect"]) 
 
+        '''
+        Only in-game pause feature. 
+        Players can only access the pause screen if they have enough XP (100xp),
+        I am going to create a key press to bring up the pause menu.
+        For now, the pause menu acts like a level up menu, displaying bonus options for the player to select.
+        Each bonus option resets the values back to max. 
+        '''
         if player.xp >= XP_TO_PAUSE:
             paused = True
             while paused:
@@ -90,11 +113,15 @@ async def main_loop():
                 await asyncio.sleep(0)
                 CLOCK.tick(FPS)
         
+        '''
+        Game over screen is triggered when the players health is less than or equal to 0. 
+        The game can be restarted by pressing the R key, or players can quit the game. 
+        On restart, health, ammo, xp, enemies, bullets and drops are all reset/cleared. 
+        '''
         if player.health <= 0:
             paused = True
             while paused:
                 SCREEN.blit(RESTART, (0, 0))
-                # I know how to pause the shooting... But I kinda don't.... So lets just leave this comment here so people know im A little bit of an idiot.
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()
@@ -108,8 +135,8 @@ async def main_loop():
                             enemies.empty()
                             bullets.clear()
                             drops.clear()
-                            paused = False # Oh.... I see my issue, I think....? 
-                            break # Maybe??
+                            paused = False 
+                            break
     
                 pygame.display.flip()
                 await asyncio.sleep(0)
@@ -153,6 +180,13 @@ async def main_loop():
                 
                 enemies.add(new_enemy)
 
+        '''
+        Checks for collisions between player and drops, and applies the corrosponding perks.
+        Currently in the process of adding more of these to my v1.1.0 branch.
+        Drop type ammo increases the players ammo on drop pickup by 5
+        Drop type health increases the players health on drop pickup by 10
+        Drop type speed increases the players velocity on drop pick up by 2. This drop type has a duration effect of 5 seconds.
+        '''
         for drop in drops:
             if player.rect.colliderect(drop["rect"]):
                 if drop["type"] == "ammo" and player.ammo < player.max_ammo:
@@ -183,6 +217,13 @@ async def main_loop():
         bullets_to_remove = []
         enemies_to_remove = []
 
+        '''
+        Update bullet positions anc checks for collisions with enemies or players.
+        If a players bullet hits an enemy, the player gaines 5 xp points, and a score of 5. 
+        Players score is incremented by 5 when an enemy is killed. 
+        If an enemy bullet collides with the player, the players health is reduced by 10.
+        Enemies and bullets are also removed when a) they collide, or b) they go off screen.
+        '''
         for bullet in bullets:
             bullet["rect"].x += bullet["rect"].width * bullet["vel_x"]
             bullet["rect"].y += bullet["rect"].height * bullet["vel_y"]
@@ -222,6 +263,10 @@ async def main_loop():
 
         SCREEN.blit(BACKGROUND2, (0, 0))
 
+        '''
+        Health, XP and Ammo bars are positioned at the top center of the screen.
+        These health bars decrease/increase depending on drop pick ups, enemy kills, or player collision with bullets and enemies. 
+        '''
         health_bar_width = int((player.health / player.max_health) * BAR_WIDTH)
         pygame.draw.rect(SCREEN, (150, 0, 0), (WIDTH // 2 - BAR_WIDTH // 2, 10, health_bar_width, BAR_HEIGHT))
         pygame.draw.rect(SCREEN, RED, (WIDTH // 2 - BAR_WIDTH // 2, 10, BAR_WIDTH, BAR_HEIGHT), 2)
