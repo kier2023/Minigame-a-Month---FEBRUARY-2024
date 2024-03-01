@@ -8,20 +8,6 @@ from Functions import *
 from Enemy import *
 from Player import *
 
-async def start_screen():
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                return
-        
-        SCREEN.blit(BACKGROUND3, (0, 0))
-        pygame.display.flip()
-        await asyncio.sleep(0)
-        CLOCK.tick(FPS)
-
 player = Player(5, 100, 50)
 bullets = []
 enemies = pygame.sprite.Group()
@@ -36,6 +22,8 @@ spawn_count = wave_length
 async def main_loop():
     global wave_length, speed_boost_start, player_score, spawn_count
 
+    username = get_username()
+    print({username})
     await start_screen()
 
     pygame.mixer.music.play(-1) 

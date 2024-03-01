@@ -1,6 +1,22 @@
 import pygame
 import random
+import sys
+import asyncio
 from Constants import *
+
+async def start_screen():
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                return
+        
+        SCREEN.blit(BACKGROUND3, (0, 0))
+        pygame.display.flip()
+        await asyncio.sleep(0)
+        CLOCK.tick(FPS)
 
 def handle_drops(enemy_rect):
     drop_type = random.choice(["ammo", "health", "speed"])
@@ -31,3 +47,40 @@ def shoot(me, x, y, is_player, size, vel, img, bullets):
         "img": RED_BULLET_IMG if is_player else GREEN_BULLET_IMG})
 
     BULLET_SOUND.play()
+
+def get_username():
+    username = ""
+    font = pygame.font.Font('Fonts/PixelifySans-VariableFont_wght.ttf', 50)
+    input_active = True
+
+    while input_active:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    input_active = False
+                    start_screen()
+                elif event.key == pygame.K_BACKSPACE:
+                    username = username[:-1]
+                else:
+                    if len(username) < 15:
+                        username += event.unicode
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if SIGN_IN_BTN_RECT.collidepoint(event.pos):
+                    input_active = False
+                    start_screen()                
+
+        SCREEN.blit(USERNAME_SCREEN, (0, 0))
+
+        # Display entered username underneath
+        username_surface = font.render(username, True, BLACK)
+        username_rect = username_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+        SCREEN.blit(username_surface, username_rect)
+        SCREEN.blit(SIGN_IN_BTN, SIGN_IN_BTN_RECT.topleft)
+
+        pygame.display.flip()
+        CLOCK.tick(FPS)
+
+    return username
