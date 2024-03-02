@@ -6,18 +6,18 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y, size, vel):
         super().__init__()
         self.images = {
-            "still_forward": pygame.image.load('Assets/Enemies/Alien-stillForward.png'),
-            "still_left": pygame.image.load('Assets/Enemies/Alien-stillLeft.png'),
-            "still_right": pygame.image.load('Assets/Enemies/Alien-stillRight.png'),
-            "still_up": pygame.image.load('Assets/Enemies/Alien-stillUp.png'),
-            "walking_forward_1": pygame.image.load('Assets/Enemies/Alien-walkingForward1.png'),
-            "walking_forward_2": pygame.image.load('Assets/Enemies/Alien-walkingForward2.png'),
-            "walking_up_1": pygame.image.load('Assets/Enemies/Alien-walkingUp1.png'),
-            "walking_up_2": pygame.image.load('Assets/Enemies/Alien-walkingUp2.png'),
-            "walking_left_1": pygame.image.load('Assets/Enemies/Alien-walkingLeft1.png'),
-            "walking_left_2": pygame.image.load('Assets/Enemies/Alien-walkingLeft2.png'),
-            "walking_right_1": pygame.image.load('Assets/Enemies/Alien-walkingRight1.png'),
-            "walking_right_2": pygame.image.load('Assets/Enemies/Alien-walkingRight2.png')} 
+            "still_forward": pygame.image.load('Assets/Enemies/Alien/Alien-stillForward.png'),
+            "still_left": pygame.image.load('Assets/Enemies/Alien/Alien-stillLeft.png'),
+            "still_right": pygame.image.load('Assets/Enemies/Alien/Alien-stillRight.png'),
+            "still_up": pygame.image.load('Assets/Enemies/Alien/Alien-stillUp.png'),
+            "walking_forward_1": pygame.image.load('Assets/Enemies/Alien/Alien-walkingForward1.png'),
+            "walking_forward_2": pygame.image.load('Assets/Enemies/Alien/Alien-walkingForward2.png'),
+            "walking_up_1": pygame.image.load('Assets/Enemies/Alien/Alien-walkingUp1.png'),
+            "walking_up_2": pygame.image.load('Assets/Enemies/Alien/Alien-walkingUp2.png'),
+            "walking_left_1": pygame.image.load('Assets/Enemies/Alien/Alien-walkingLeft1.png'),
+            "walking_left_2": pygame.image.load('Assets/Enemies/Alien/Alien-walkingLeft2.png'),
+            "walking_right_1": pygame.image.load('Assets/Enemies/Alien/Alien-walkingRight1.png'),
+            "walking_right_2": pygame.image.load('Assets/Enemies/Alien/Alien-walkingRight2.png')} 
         
         self.current_image = self.images["still_forward"]
         self.rect = self.current_image.get_rect()
