@@ -26,7 +26,7 @@ pygame.mixer.init()
 RESTART_FONT = pygame.font.Font('Fonts/SpaceMono-Regular.ttf', 40)
 RESTART_TEXT = RESTART_FONT.render("GAME OVER! Press R to restart", True, WHITE)
 
-AMO_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/Ammo crate.png'), (30, 30))
+AMO_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/ammo crate.png'), (30, 30))
 HEALTH_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/health.png'), (30, 30))
 XP_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/xp.png'), (30, 30))
 SPEED_IMG = pygame.transform.scale(pygame.image.load('Assets/bonuses/speed.png'), (30, 30))
