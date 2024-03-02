@@ -11,7 +11,12 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 WHITE = (255, 255, 255)
+<<<<<<< HEAD
 BAR_WIDTH = 450
+=======
+BLACK = (0, 0, 0)
+BAR_WIDTH = 550
+>>>>>>> feature/v1.1.0
 BAR_HEIGHT = 25
 WAVE_DELAY = 5000
 CURVED_BOX_COLOR = (59, 24, 29)
@@ -44,11 +49,15 @@ XP_TO_PAUSE = 100
 BACKGROUND = pygame.image.load('Assets/backgrounds/Background 1.png')
 BACKGROUND2 = pygame.image.load('Assets/backgrounds/Background 2.png')
 BACKGROUND3 = pygame.image.load('Assets/backgrounds/bg.png')
+USERNAME_SCREEN = pygame.image.load('Assets/backgrounds/Username_screen.png')
 RESTART = pygame.image.load('Assets/backgrounds/restart.png')
 OPTIONS = pygame.image.load('Assets/backgrounds/options.png')
 
 RED_BULLET_IMG = pygame.transform.scale(pygame.image.load('Assets/lasers/1.png'), (30, 30))
 GREEN_BULLET_IMG = pygame.transform.scale(pygame.image.load('Assets/lasers/2.png'), (30, 30))
+
+SIGN_IN_BTN = pygame.transform.scale(pygame.image.load('Assets/UI/Sign in btn.png'), (200, 200))
+SIGN_IN_BTN_RECT = SIGN_IN_BTN.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 200))
 
 BULLET_SOUND = pygame.mixer.Sound('Music/efx/space-laser-38082.wav')
 BULLET_SOUND.set_volume(0.2)

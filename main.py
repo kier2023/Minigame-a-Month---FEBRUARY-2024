@@ -42,6 +42,8 @@ spawn_count = wave_length
 async def main_loop():
     global wave_length, speed_boost_start, player_score, spawn_count
 
+    username = get_username()
+    print({username})
     await start_screen()
 
     pygame.mixer.music.play(-1) 
