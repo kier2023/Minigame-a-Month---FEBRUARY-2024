@@ -42,8 +42,8 @@ spawn_count = wave_length
 async def main_loop():
     global wave_length, speed_boost_start, player_score, spawn_count
 
-    username = get_username()
-    print({username})
+    #username = get_username()
+    #print({username})
     await start_screen()
 
     pygame.mixer.music.play(-1) 
@@ -181,6 +181,20 @@ async def main_loop():
                         new_enemy.rect.y = HEIGHT - ENEMY_SIZE
                 
                 enemies.add(new_enemy)
+
+        '''
+        Checks for player v enemy collision. 
+        Upon collision, players health is reduced by 20, 
+        Enemy then drops a bonus, and is killed from the screen.
+        '''
+        for enemy in enemies:
+            if player.rect.colliderect(enemy.rect):
+                print("Collision Detected!")
+                player.health -= 20
+                player.xp += 10
+                drop = handle_drops(enemy.rect)
+                drops.append(drop)
+                enemy.kill()
 
         '''
         Checks for collisions between player and drops, and applies the corrosponding perks.

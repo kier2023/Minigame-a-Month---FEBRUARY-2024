@@ -11,12 +11,8 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 WHITE = (255, 255, 255)
-<<<<<<< HEAD
-BAR_WIDTH = 450
-=======
 BLACK = (0, 0, 0)
-BAR_WIDTH = 550
->>>>>>> feature/v1.1.0
+BAR_WIDTH = 450
 BAR_HEIGHT = 25
 WAVE_DELAY = 5000
 CURVED_BOX_COLOR = (59, 24, 29)

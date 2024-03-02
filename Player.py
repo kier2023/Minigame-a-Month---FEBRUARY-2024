@@ -73,15 +73,6 @@ class Player(pygame.sprite.Sprite):
             self.current_image = self.images["still_forward"]
 
     #WHY THE FUCK ARE YOU NOT BEING CALLED?! #Get boople.
-        print("cunt")
-        for enemy in self.enemies:
-            print(f"Player: ({self.rect.x}, {self.rect.y}), Enemy: ({enemy.rect.x}, {enemy.rect.y})")
-            if self.rect.colliderect(enemy.rect):
-                print("Collision Detected!")
-                self.health -= 20
-                drop = handle_drops(enemy.rect)
-                self.drops.append(drop)
-                enemy.kill()
 
         self.rect.x = max(0, min(self.rect.x, WIDTH - PLAYER_SIZE))
         self.rect.y = max(0, min(self.rect.y, HEIGHT - PLAYER_SIZE))
