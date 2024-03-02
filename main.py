@@ -189,7 +189,6 @@ async def main_loop():
         '''
         for enemy in enemies:
             if player.rect.colliderect(enemy.rect):
-                print("Collision Detected!")
                 player.health -= 20
                 player.xp += 10
                 drop = handle_drops(enemy.rect)
