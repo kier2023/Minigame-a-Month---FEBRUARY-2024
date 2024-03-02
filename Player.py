@@ -71,9 +71,13 @@ class Player(pygame.sprite.Sprite):
 
         if not any([move_up, move_down, move_left, move_right]):
             self.current_image = self.images["still_forward"]
-        
+
+    #WHY THE FUCK ARE YOU NOT BEING CALLED?! #Get boople.
+        print("cunt")
         for enemy in self.enemies:
+            print(f"Player: ({self.rect.x}, {self.rect.y}), Enemy: ({enemy.rect.x}, {enemy.rect.y})")
             if self.rect.colliderect(enemy.rect):
+                print("Collision Detected!")
                 self.health -= 20
                 drop = handle_drops(enemy.rect)
                 self.drops.append(drop)
