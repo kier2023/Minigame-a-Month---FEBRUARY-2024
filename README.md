@@ -37,8 +37,8 @@ Lost in Space is a minigame where the player controls an astronaut, and needs to
    ```bash
    git clone https://github.com/your-username/Lost-in-Space.git
    ```
-2. Access the game through Itch.IO
-  [LINK WILL GO HERE]
+2. Access the game through Itch.IO:
+  [Play the game online!](https://kier7744.itch.io/lost-in-space)
 
 ## Usage:
 1. Python:
