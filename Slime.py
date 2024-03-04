@@ -2,7 +2,7 @@ import pygame
 from Functions import *
 
 class Slime(pygame.sprite.Sprite):
-    def __init__(self, x, y, size, vel, drops, initial_health=3):
+    def __init__(self, x, y, size, vel, drops, initial_health=2):
         super().__init__()
         self.images = {
             "slime_still": pygame.image.load('Assets/Enemies/slime/slime-idle-1.png'),
@@ -14,9 +14,9 @@ class Slime(pygame.sprite.Sprite):
         self.rect = self.current_image.get_rect()
         self.rect.topleft = (x, y)
         self.size = size
-        self.vel = 2 
+        self.vel = 0.5
         self.spawn_time = pygame.time.get_ticks()
-        self.acc = 0.03
+        self.acc = 0.02
         self.health = initial_health
         self.drops = drops
 
@@ -29,7 +29,7 @@ class Slime(pygame.sprite.Sprite):
             self.current_image = self.images["slime_move_right_1"]
         elif self.rect.x > player_rect.centerx:
             self.rect.x -= self.vel
-            self.current_image = self.images["slime_move_left_1"]
+            self.current_image = self.images["slime_move_left_2"]
 
         if self.rect.y < player_rect.centery:
             self.rect.y += self.vel

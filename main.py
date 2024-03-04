@@ -41,7 +41,7 @@ spawn_count = wave_length
 # Main game loop is an ansycrhronus functions as I used pygbag to generate a web.zip file. 
 
 async def main_loop():
-    global wave_length, speed_boost_start, player_score, spawn_count
+    global wave_length, speed_boost_start, player_score, spawn_count, bullets
 
     username = get_username()
     print({username})
@@ -294,8 +294,7 @@ async def main_loop():
         for drop in drops:
             SCREEN.blit(drop["img"], drop["rect"])
 
-        for bullet in bullets_to_remove:
-            bullets.remove(bullet)
+        bullets = [bullet for bullet in bullets if bullet not in bullets_to_remove]
 
         for bullet in bullets:
             SCREEN.blit(bullet["img"], (int(bullet["rect"].x), int(bullet["rect"].y)))
