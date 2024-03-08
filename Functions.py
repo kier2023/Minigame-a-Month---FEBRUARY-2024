@@ -50,6 +50,7 @@ def shoot(me, x, y, is_player, size, vel, img, bullets):
 
     BULLET_SOUND.play()
 
+''' SCRAPPED DUE TRO TIME CONSTRAINTS.
 def get_username():
     username = ""
     font = pygame.font.Font('Fonts/PixelifySans-VariableFont_wght.ttf', 50)
@@ -86,3 +87,4 @@ def get_username():
         CLOCK.tick(FPS)
 
     return username
+'''

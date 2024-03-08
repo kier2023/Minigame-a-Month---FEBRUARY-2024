@@ -2,11 +2,11 @@ import pygame
 import sys
 import random
 import asyncio
-import math
 from Constants import *
 from Functions import *
 from Enemy import *
 from Player import *
+from Slime import *
 
 '''
  Function to deplay the start screen before the main game loop begins. 
@@ -30,6 +30,7 @@ async def start_screen():
 player = Player(5, 100, 50)
 bullets = []
 enemies = pygame.sprite.Group()
+slimes = pygame.sprite.Group()
 drops = []
 wave_length = 5
 last_wave = -10000
@@ -40,10 +41,7 @@ spawn_count = wave_length
 # Main game loop is an ansycrhronus functions as I used pygbag to generate a web.zip file. 
 
 async def main_loop():
-    global wave_length, speed_boost_start, player_score, spawn_count
-
-    #username = get_username()
-    #print({username})
+    global wave_length, speed_boost_start, player_score, spawn_count, bullets
     await start_screen()
 
     pygame.mixer.music.play(-1) 
@@ -134,7 +132,9 @@ async def main_loop():
                             player.ammo = player.max_ammo
                             player.xp = 0
                             spawn_count = wave_length = 5
+                            player_score = 0
                             enemies.empty()
+                            slimes.empty()
                             bullets.clear()
                             drops.clear()
                             paused = False 
@@ -164,7 +164,10 @@ async def main_loop():
                     enemy_x = random.randint(0, WIDTH - ENEMY_SIZE)
                     enemy_y = HEIGHT - ENEMY_SIZE
 
-                new_enemy = Enemy(enemy_x, enemy_y, ENEMY_SIZE, 1) 
+                if random.choice([True, False]):
+                    new_enemy = Enemy(enemy_x, enemy_y, ENEMY_SIZE, 1) 
+                else:
+                    new_enemy = Slime(enemy_x, enemy_y, ENEMY_SIZE, 1, drops) 
 
                 while any(existing_enemy.rect.colliderect(new_enemy.rect) for existing_enemy in enemies):
                     if side == 'left':
@@ -180,7 +183,10 @@ async def main_loop():
                         new_enemy.rect.x = random.randint(0, WIDTH - ENEMY_SIZE)
                         new_enemy.rect.y = HEIGHT - ENEMY_SIZE
                 
-                enemies.add(new_enemy)
+                if isinstance(new_enemy, Enemy):
+                    enemies.add(new_enemy)
+                elif isinstance(new_enemy, Slime):
+                    slimes.add(new_enemy)
 
         '''
         Checks for player v enemy collision. 
@@ -194,6 +200,10 @@ async def main_loop():
                 drop = handle_drops(enemy.rect)
                 drops.append(drop)
                 enemy.kill()
+
+        for slime in slimes:
+            if player.rect.colliderect(slime.rect):
+                player.health -= 0.5
 
         '''
         Checks for collisions between player and drops, and applies the corrosponding perks.
@@ -224,6 +234,10 @@ async def main_loop():
         for enemy in enemies:
             enemy.update(player.rect, bullets)
             SCREEN.blit(enemy.current_image, enemy.rect)
+        
+        for slime in slimes:
+            slime.update(player.rect)
+            SCREEN.blit(slime.current_image, slime.rect)
 
         if speed_boost_start > 0 and pygame.time.get_ticks() - speed_boost_start >= 5000:
             player.vel = player.original_vel
@@ -244,6 +258,15 @@ async def main_loop():
             bullet["rect"].y += bullet["rect"].height * bullet["vel_y"]
 
             bullet_marked_for_removal = False
+            for slime in slimes:
+                if bullet["rect"].colliderect(slime.rect) and bullet["player"]:
+                    bullets_to_remove.append(bullet)
+                    bullet_marked_for_removal = True
+                    slime.take_damage()
+                    player.xp += 5
+                    player_score += 5
+                    break
+
             for enemy in enemies:
                 if bullet["rect"].colliderect(enemy.rect) and bullet["player"]:
                     bullets_to_remove.append(bullet)
@@ -270,8 +293,7 @@ async def main_loop():
         for drop in drops:
             SCREEN.blit(drop["img"], drop["rect"])
 
-        for bullet in bullets_to_remove:
-            bullets.remove(bullet)
+        bullets = [bullet for bullet in bullets if bullet not in bullets_to_remove]
 
         for bullet in bullets:
             SCREEN.blit(bullet["img"], (int(bullet["rect"].x), int(bullet["rect"].y)))
