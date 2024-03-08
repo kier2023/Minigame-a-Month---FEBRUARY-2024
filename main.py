@@ -42,9 +42,6 @@ spawn_count = wave_length
 
 async def main_loop():
     global wave_length, speed_boost_start, player_score, spawn_count, bullets
-
-    username = get_username()
-    print({username})
     await start_screen()
 
     pygame.mixer.music.play(-1) 
@@ -135,7 +132,9 @@ async def main_loop():
                             player.ammo = player.max_ammo
                             player.xp = 0
                             spawn_count = wave_length = 5
+                            player_score = 0
                             enemies.empty()
+                            slimes.empty()
                             bullets.clear()
                             drops.clear()
                             paused = False 
